@@ -1,0 +1,179 @@
+html {
+	font-family: "segoe ui", "helvetica neue", "helvetica", sans-serif;
+	font-size: 14px;
+	margin: 0;
+}
+
+body {
+	width: 13in;
+	margin: 2em auto;
+}
+
+table, #header {
+	width: 8in;
+}
+#header {
+	text-align: right;
+	font-weight: bold;
+}
+#header span {
+	margin: -0.3em 0.3em 1em 0.3em;
+	display: block;
+}
+table, tr, td, th {
+	border: 1px solid #ccc;
+}
+
+ol {
+	list-style-type: none;
+	padding: 0;
+	margin: 0;
+	text-align: center;
+}
+
+li {
+	padding: 1.7em 0.25em;	
+}
+
+th {
+	padding: 0.25em;
+	width: 18%;
+}
+
+th:first-child {
+	width: 10%;
+}
+
+td {
+	vertical-align: top;
+}
+
+.day {
+	position: relative;
+	text-align: center;
+	font-size: 0.8em;
+}
+
+.day div {
+	position: absolute;
+	left: 0;
+	right: 0;
+}
+
+#controls {
+	float: right;
+	width: 4in;
+	border: 1px solid #aaa;
+	padding: 1em 1em 1.5em 1.5em
+}
+
+#controls h1 {
+	margin: 0 0 0.5em;
+	font-size: 1.2em;
+}
+
+#controls h1 button {
+	float: right;
+}
+
+:link, :visited {
+	color: #333;
+}
+.x:link, .x:visited {
+	color: red;
+}
+
+.text {
+	margin: 0 0 2em;
+}
+.text:last-child {
+	margin-bottom: 0;
+}
+
+.course {
+	margin: 0.5em 0;
+	overflow: hidden;
+}
+.course-controls {
+	float: left;
+	width: 5%;
+	text-align: center;
+	padding-top: 0.3em;
+}
+.course-input {
+	float: right;
+	width: 92%;
+}
+.course input[type="text"], .course textarea {
+	width: 98%;
+	font-family: inherit;
+	padding: 3px;
+	border: 1px solid #999;	
+	float: right;
+}
+.course input[type="text"] {
+	font-weight: bold;
+	background-color: hsl(150, 73%, 90%);
+}
+.course textarea {
+	height: 5em;
+	padding: 3px;
+	font-size: 0.8em;
+	overflow-x: auto;
+	white-space: nowrap;
+}
+.course a {
+	display: block;
+}
+
+.course.hidden textarea, .course.hidden a {
+	display: none;
+}
+.course.hidden {
+	margin: 0.25em 0;
+}
+
+#courses {
+	margin: 0 0 2em;
+}
+
+#demo-textarea {
+	height: 5em;
+	padding: 3px;
+	font-size: 0.8em;
+	font-family: inherit;
+	padding: 3px;
+	border: 1px solid #999;
+	display: block;				
+	margin: 1em auto;
+	width: 90%;
+}
+
+.template {
+	display: none;
+}
+
+#saved-schedules {
+	-moz-column-count: 3;
+	-moz-column-gap: 1em;
+	-webkit-column-count: 3;
+	-webkit-column-gap: 1em;
+}
+#saved-schedules-container.empty #saved-schedules,
+#saved-schedules-container.not-empty #saved-schedules-filler {
+	display: none;
+}
+
+
+@media print {
+	html {
+		-webkit-print-color-adjust: exact;
+	}
+	body {
+		width: auto;
+		margin: 0;
+	}
+	#controls {
+		display: none;
+	}
+}

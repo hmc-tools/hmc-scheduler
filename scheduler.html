@@ -1,0 +1,119 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Scheduler</title>
+		<link rel="stylesheet" href="scheduler.css" type="text/css" />
+		<script src="scheduler.js" type="text/javascript"></script>
+	</head>
+	<body>
+		<div id="controls">
+			<h1>Scheduler <span style="font-weight: normal">(<span id="page-number">1</span> of <span id="page-count">1</span>)</span>
+				<button id="button-right" disabled="disabled" title="(you can also use your arrow keys)">&gt;</button> 
+				<button id="button-left" disabled="disabled" title="(you can also use your arrow keys)">&lt;</button>
+				<button id="button-save" disabled="disabled" title="Save">:D</button>
+			</h1>
+			
+			<div class="text">
+				Here's a tool to help you arrange your classes. Enter the classes you want to take and their different time slots below, and then click Generate to see which schedules don't conflict. Then, once you decide on a shiny new schedule, you can save or print it!
+			</div>
+			
+			<h1>Courses <button id="button-generate">Generate</button> <button id="button-add">+</button></h1>
+			<div id="courses">
+				<div class="course hidden template" id="course-template">
+					<div class="course-controls">
+						<input type="checkbox" checked="checked" />
+						<a class="x" href="#">x</a>
+						<a class="c" href="#">c</a>
+					</div>
+					<div class="course-input">
+						<input type="text" placeholder="Course Name" title="(double-click to collapse)" />
+						<textarea placeholder="MWF 01:15PM-02:30PM"></textarea>
+					</div>
+				</div>
+			</div>
+			
+			<h1>Saved Schedules</h1>
+			<div id="saved-schedules-container" class="text">
+				<div id="saved-schedules-filler">Generate some schedules and save the ones you like!</div>
+				<div id="saved-schedules"></div>
+			</div>
+			
+			<h1>Details</h1>
+			<div class="text">
+				 The format for the time slots is one time slot per line:
+				<textarea id="demo-textarea" disabled="disabled">
+MW 08:00AM-08:50AM, TR 08:10AM-09:25AM
+MW 09:00AM-09:50AM, TR 08:10AM-09:25AM
+MW 10:00AM-11:50AM, TR 08:10AM-09:25AM</textarea>
+				That way, it's easy to copy and paste from Portal. There's also a <a href="#" id="bookmarklet">bookmarklet</a>.<br /><br />
+				Suggestions? Email <a href="mailto:cchu@hmc.edu">cchu@hmc.edu</a>!
+			</div>
+		</div>
+	
+		<table id="schedule" border="1" cellspacing="3" cellpadding="1">
+			<tr>
+				<th></th>
+				<th>Monday</th>
+				<th>Tuesday</th>
+				<th>Wednesday</th>
+				<th>Thursday</th>
+				<th>Friday</th>
+			</tr>
+			<tr>
+				<td>
+					<ol>
+						<li>8am</li>
+						<li>9am</li>
+						<li>10am</li>
+						<li>11am</li>
+						<li>12pm</li>
+						<li>1pm</li>
+						<li>2pm</li>
+						<li>3pm</li>
+						<li>4pm</li>
+						<li>5pm</li>
+						<li>6pm</li>
+						<li>7pm</li>
+						<li>8pm</li>
+						<li>9pm</li>
+					</ol>
+				</td>
+				<td><div class="day"></div></td>
+				<td><div class="day"></div></td>
+				<td><div class="day"></div></td>
+				<td><div class="day"></div></td>
+				<td><div class="day"></div></td>
+			</tr>
+		</table>
+		
+		<script type="text/x-js-bookmarklet">
+			function getValue(node) {
+				return (node.firstChild.nodeValue || '').trim();
+			}
+
+			var loader = document.createElement('iframe');
+			loader.id = 'loader';
+			document.body.appendChild(loader);
+
+			Array.prototype.filter.call(document.querySelectorAll('.groupedGrid tr:not(.subItem)'), function (node) { return node.children.length == 10 && node.children[0].nodeName == 'TD'; }).forEach(function (row) {
+				var data = {
+					'courseCode': getValue(row.children[1].children[0]),
+					'courseName': getValue(row.children[2]),
+					'professors': Array.prototype.map.call(row.children[3].querySelectorAll('li'), getValue),
+					'seats': getValue(row.children[4]),
+					'status': getValue(row.children[5]),
+					'timeSlots': Array.prototype.map.call(row.children[6].querySelectorAll('li'), getValue),
+					'credits': +getValue(row.children[7]),
+					'startDate': getValue(row.children[8]),
+					'endDate': getValue(row.children[9])
+				};
+
+				var link = document.createElement('a');
+				link.href = __URL__ + '#' + data.courseName;
+				link.target = 'loader';
+				link.innerHTML = 'Schedule';
+				row.children[0].insertBefore(link, row.children[0].firstChild);
+			});
+		</script>
+	</body>
+</html>
