@@ -5,6 +5,8 @@ function addCourse(course, i, courses) {
 	// Make a new course node
 	var courseNode = document.getElementById('course-template').cloneNode(true);
 	courseNode.classList.remove('template');
+	course._node = courseNode;
+	course._node.toJSON = function () { return undefined; };
 
 	// Fill in the values
 	if (course.name) courseNode.querySelector('input[type="text"]').value = course.name;
@@ -43,10 +45,16 @@ function addCourse(course, i, courses) {
 	
 	// Deleting
 	courseNode.querySelector('.x').onclick = function () {
-		if (confirm('Are you sure you want to delete ' + (course.name || 'this class') + '?'))
+		if (confirm('Are you sure you want to delete ' + (course.name || 'this class') + '?')) {
 			courses.splice(courses.indexOf(course), 1);
-		courseNode.parentNode.removeChild(courseNode);
-		save('courses', courses);
+			courseNode.parentNode.removeChild(courseNode);
+			save('courses', courses);
+			
+			if (courses.length == 0) {
+				document.getElementById('courses-container').classList.add('empty');
+				document.getElementById('courses-container').classList.remove('not-empty');
+			}
+		}
 		return false;
 	};
 	
@@ -58,6 +66,8 @@ function addCourse(course, i, courses) {
 	};
 	
 	document.getElementById('courses').appendChild(courseNode);
+	document.getElementById('courses-container').classList.remove('empty');
+	document.getElementById('courses-container').classList.add('not-empty');
 }
 
 var randomColor = (function generate() {
@@ -168,11 +178,94 @@ function addSavedSchedule(name, schedule, savedSchedules) {
 	document.getElementById('saved-schedules').appendChild(div);
 }
 
-// Store stuff
-function save(type, data) {
-	localStorage[type] = JSON.stringify(data);
-}
+function generateSchedules(courses) {
+
+	// Parse all the courses from text form into a list of courses, each a list of time slots
+	var classes = courses.filter(function (course) { return course.selected && course.times; }).map(function (course) {
 	
+		// Parse every line separately
+		return course.times.split('\n').map(function (timeSlot) {
+		
+			// Split it into a list of each day's time slot
+			var args = [];
+			timeSlot.replace(/([MTWRF]+) (\d?\d):(\d\d)\s*(AM|PM)?\s*\-\s?(\d?\d):(\d\d)\s*(AM|PM)?/gi, function (_, daylist, h1, m1, pm1, h2, m2, pm2) {
+				daylist.split('').forEach(function (day) {
+					args.push({
+						'course': course,
+						'weekday': 'MTWRF'.indexOf(day), 
+						'from': timeToHours(+h1, +m1, (pm1 || pm2) == 'PM'),
+						'to': timeToHours(+h2, +m2, (pm2 || pm1) == 'PM'),
+					});
+				});
+			});
+			return args;
+			
+		});	
+	});
+	
+	// Generate all possible combinations
+	var combos = [];
+	var state = classes.map(function () { return 0; }); // Array of the same length
+	while (true) {
+	
+		// Add this possibility
+		combos.push(classes.map(function (course, i) {
+			return course[state[i]];
+		}));
+		
+		// Increment state
+		var incremented = false;
+		for (var i = 0; i < classes.length; i++) {
+			if (state[i] < classes[i].length - 1) {
+				state[i]++;
+				incremented = true;
+				break;
+			} else
+				state[i] = 0;
+		}
+		
+		// We're done.
+		if (!incremented)
+			break;
+	}
+		
+	// Concatenate all the timeslots
+	return combos.map(function (combo) {
+		return Array.prototype.concat.apply([], combo);
+	})
+	
+	// And remove conflicting schedules
+	.filter(function (timeSlots) {
+	
+		// Loop over every six minute interval and make sure no two classes occupy it
+		for (var day = 0; day < 5; day++) {
+		
+			var todaySlots = timeSlots.filter(function (timeSlot) { return timeSlot.weekday == day; });
+			for (var t = 0; t < 24; t += 0.1)				
+				if (todaySlots.filter(function (timeSlot) {
+							return timeSlot.from < t && t < timeSlot.to;
+						}).length > 1)
+					return false;
+			
+		}
+		
+		return true;
+	});
+}
+
+// Store stuff
+var lastModified = localStorage.lastModified;
+function save(type, arr) {
+
+	if (localStorage.lastModified != lastModified)
+		if (!confirm('It looks like the data has been modified from another window. Do you want to overwrite those changes? If not, refresh this page to update its data.')) {
+			return;
+		}
+		
+	lastModified = localStorage.lastModified = Date.now();
+	localStorage[type] = JSON.stringify(arr);
+}
+
 window.onload = function () {
 
 	// Load data
@@ -204,78 +297,7 @@ window.onload = function () {
 	};
 	
 	document.getElementById('button-generate').onclick = function () {
-	
-		// Parse all the courses from text form into a list of courses, each a list of time slots
-		var classes = courses.filter(function (course) { return course.selected && course.times; }).map(function (course) {
-		
-			// Parse every line separately
-			return course.times.split('\n').map(function (timeSlot) {
-			
-				// Split it into a list of each day's time slot
-				var args = [];
-				timeSlot.replace(/([MTWRF]+) (\d?\d):(\d\d)\s*(AM|PM)?\s*\-\s?(\d?\d):(\d\d)\s*(AM|PM)?/gi, function (_, daylist, h1, m1, pm1, h2, m2, pm2) {
-					daylist.split('').forEach(function (day) {
-						args.push({
-							'course': course,
-							'weekday': 'MTWRF'.indexOf(day), 
-							'from': timeToHours(+h1, +m1, (pm1 || pm2) == 'PM'),
-							'to': timeToHours(+h2, +m2, (pm2 || pm1) == 'PM'),
-						});
-					});
-				});
-				return args;
-				
-			});	
-		});
-		
-		// Generate all possible combinations
-		var combos = [];
-		var state = classes.map(function () { return 0; }); // Array of the same length
-		while (true) {
-		
-			// Add this possibility
-			combos.push(classes.map(function (course, i) {
-				return course[state[i]];
-			}));
-			
-			// Increment state
-			var incremented = false;
-			for (var i = 0; i < classes.length; i++) {
-				if (state[i] < classes[i].length - 1) {
-					state[i]++;
-					incremented = true;
-					break;
-				} else
-					state[i] = 0;
-			}
-			
-			// We're done.
-			if (!incremented)
-				break;
-		}
-			
-		// Concatenate all the timeslots
-		schedules = combos.map(function (combo) {
-			return Array.prototype.concat.apply([], combo);
-		})
-		
-		// And remove conflicting schedules
-		.filter(function (timeSlots) {
-		
-			// Loop over every six minute interval and make sure no two classes occupy it
-			for (var day = 0; day < 5; day++) {
-			
-				var todaySlots = timeSlots.filter(function (timeSlot) { return timeSlot.weekday == day; });
-				for (var t = 0; t < 24; t += 0.1)				
-					if (todaySlots.filter(function (timeSlot) {
-								return timeSlot.from < t && t < timeSlot.to;
-							}).length > 1)
-						return false;
-				
-			}
-			
-			return true;
-		});
+		schedules = generateSchedules(courses);
 		
 		// Display them all
 		if (schedules.length) {
@@ -297,23 +319,72 @@ window.onload = function () {
 			schedulePosition = loadSchedule(schedules, schedulePosition - 1);
 	};
 	
+	// For use with the bookmarklet
 	window.onhashchange = function () {
-		var data = JSON.parse(unescape(window.location.hash.substr(1)));
-		console.log(data);
+		if (!window.location.hash)
+			return;
+	
+		// Extract information from the hash
+		try {
+			var data = JSON.parse(unescape(window.location.hash.substr(1)));
+		} catch (e) {
+			return;
+		}
+		console.log('Received payload ' + data);
+		
+		var name = data[0];
+		var times = data[1];
+		var course = false;
+		
+		// See if the course being passed in is already in the course list
+		for (var i = 0; i < courses.length; i++)
+			if (courses[i].name == name) {
+				course = courses[i];
+				break;
+			}
+			
+		// Not there yet? Make it.
+		if (!course) {
+			course = {
+				'name': name,
+				'selected': true,
+				'times': times,
+				'color': randomColor()
+			};
+			courses.push(course);
+			addCourse(course, 0, courses);
+		}
+		
+		// Add this time to the list if it's not already there
+		else {
+			var existingTimes = course.times.split('\n');
+			if (existingTimes.indexOf(times) == -1) {
+				existingTimes.push(times);
+				course._node.querySelector('textarea').value = course.times = existingTimes.join('\n');
+				course._node.querySelector('input[type="text"]').onfocus();
+			}
+		}
+		
+		save('courses', courses);
+		window.location.hash = '';
 	};
+	window.onhashchange();
 	
 	// Display all the courses
 	if (courses.length) {
 		courses.forEach(addCourse);
 		document.getElementById('button-generate').onclick();
-	} else
-		document.getElementById('button-add').onclick();
+	}
 	
 	// Display all the saved schedules
 	for (var name in savedSchedules)
 		addSavedSchedule(name, savedSchedules[name], savedSchedules);
 	
 	// Make the bookmarklet
+	document.getElementById('bookmarklet').onclick = function () {
+		alert('Drag this to your bookmarks bar. Search for your classes on Portal, and when you find a class you like on the search page, click the bookmark!');
+		return false;
+	};
 	document.getElementById('bookmarklet').href = 'javascript:' + 
 			escape('(function(__URL__){'
 				+ document.querySelector('script[type="text/x-js-bookmarklet"]').innerHTML.replace(/\s+/g, ' ') 

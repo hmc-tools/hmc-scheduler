@@ -24,14 +24,14 @@ table, tr, td, th {
 	border: 1px solid #ccc;
 }
 
-ol {
+table ol {
 	list-style-type: none;
 	padding: 0;
 	margin: 0;
 	text-align: center;
 }
 
-li {
+table li {
 	padding: 1.7em 0.25em;	
 }
 
@@ -62,7 +62,7 @@ td {
 
 #controls {
 	float: right;
-	width: 4in;
+	width: 4.25in;
 	border: 1px solid #aaa;
 	padding: 1em 1em 1.5em 1.5em
 }
@@ -163,7 +163,15 @@ td {
 #saved-schedules-container.not-empty #saved-schedules-filler {
 	display: none;
 }
+#courses-container.empty #courses,
+#courses-container.not-empty #courses-filler {
+	display: none;
+}
 
+#bookmarklet {
+	outline: 1px dotted black;
+	padding: 2px;
+}
 
 @media print {
 	html {
