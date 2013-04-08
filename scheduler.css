@@ -46,6 +46,7 @@ th:first-child {
 
 td {
 	vertical-align: top;
+	overflow: hidden;
 }
 
 .day {
@@ -114,6 +115,7 @@ td {
 .course input[type="text"] {
 	font-weight: bold;
 	background-color: hsl(150, 73%, 90%);
+	cursor: pointer;
 }
 .course textarea {
 	height: 5em;
@@ -172,7 +174,29 @@ td {
 	outline: 1px dotted black;
 	padding: 2px;
 }
+#bookmark-helper {
+	border-bottom: 1px dotted black;
+	margin: 0 0 -1px;
+}
 
+#page-counter.not-empty #pages-not-possible,
+#page-counter.empty #pages {
+	display: none;
+}
+
+/*
+#button-right:not([disabled]):not(.clicked) {
+	-webkit-animation-name: blinker;  
+	-webkit-animation-iteration-count: infinite;  
+	-webkit-animation-timing-function: ease-in-out;
+	-webkit-animation-duration: 1s; 
+}
+@-webkit-keyframes blinker {  
+	from { box-shadow: 0 0 50px #fc0; }
+	50% { box-shadow: 0 0 50px #fff; }
+	to { box-shadow: 0 0 50px #fc0; }
+}
+*/
 @media print {
 	html {
 		-webkit-print-color-adjust: exact;

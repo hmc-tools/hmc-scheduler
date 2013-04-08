@@ -21,13 +21,18 @@ function addCourse(course, i, courses) {
 		openNode = courseNode;
 		openNode.classList.remove('hidden');
 	};
-	courseNode.querySelector('input[type="text"]').ondblclick = function () {
+	/*courseNode.querySelector('input[type="text"]').ondblclick = function () {
 		openNode.classList.add('hidden');
 		openNode = false;	
-	};
+	};*/
 	
 	// Data updating
-	courseNode.querySelector('input[type="text"]').onchange = function () { course.name = this.value; save('courses', courses); };
+	courseNode.querySelector('input[type="text"]').onchange = function () {
+		course.name = this.value; 
+		
+		save('courses', courses);
+		document.getElementById('button-generate').disabled = false;
+	};
 	courseNode.querySelector('textarea').onchange = function () { 
 		course.times = this.value.trim();
 		
@@ -36,8 +41,13 @@ function addCourse(course, i, courses) {
 			this.value += '\n';
 			
 		save('courses', courses);
+		document.getElementById('button-generate').disabled = false;
 	};
-	courseNode.querySelector('input[type="checkbox"]').onchange = function () { course.selected = !!this.checked; save('courses', courses); };	
+	courseNode.querySelector('input[type="checkbox"]').onchange = function () {
+		course.selected = !!this.checked;
+		save('courses', courses);
+		document.getElementById('button-generate').disabled = false;
+	};	
 	
 	// Tabbing
 	courseNode.querySelector('input[type="text"]').setAttribute('tabindex', ++tabIndex);
@@ -49,6 +59,7 @@ function addCourse(course, i, courses) {
 			courses.splice(courses.indexOf(course), 1);
 			courseNode.parentNode.removeChild(courseNode);
 			save('courses', courses);
+			document.getElementById('button-generate').disabled = false;
 			
 			if (courses.length == 0) {
 				document.getElementById('courses-container').classList.add('empty');
@@ -62,17 +73,20 @@ function addCourse(course, i, courses) {
 	courseNode.querySelector('.c').onclick = function () {
 		courseNode.querySelector('input[type="text"]').style.backgroundColor = course.color = randomColor();
 		save('courses', courses);
+		document.getElementById('button-generate').disabled = false;
 		return false;
 	};
 	
 	document.getElementById('courses').appendChild(courseNode);
 	document.getElementById('courses-container').classList.remove('empty');
 	document.getElementById('courses-container').classList.add('not-empty');
+	
+	document.getElementById('button-generate').disabled = false;
 }
 
 var randomColor = (function generate() {
 	var colorChoices = [];
-	for (var i = 0; i < 360; i += 36)
+	for (var i = 0; i < 360; i += 3)
 		colorChoices.push('hsl(' + i + ', 73%, 90%)');
 	colorChoices = colorChoices.sort(function () { return Math.random() - .5; });
 	return function () {
@@ -94,19 +108,21 @@ function formatHours(hours) {
 }
 
 function loadSchedule(schedules, i) {
-	
-	if (!schedules.length)
-		return 0;
 
 	i = Math.min(schedules.length - 1, Math.max(i, 0));
 	
 	// Some UI
-	document.getElementById('button-left').disabled = i == 0;
+	document.getElementById('button-left').disabled = i <= 0;
 	document.getElementById('button-right').disabled = i + 1 >= schedules.length;
 	document.getElementById('page-number').innerHTML = i + 1;
 	document.getElementById('page-count').innerHTML = schedules.length;
+	document.getElementById('button-save').disabled = schedules.length == 0;
+	document.getElementById('button-print').disabled = schedules.length == 0;
 	
-	drawSchedule(schedules[i]);
+	document.getElementById('page-counter').classList.add(schedules.length ? 'not-empty' : 'empty');
+	document.getElementById('page-counter').classList.remove(schedules.length ? 'empty' : 'not-empty');
+	
+	drawSchedule(schedules[i] || []);
 	return i;
 }
 
@@ -146,6 +162,7 @@ function addSavedSchedule(name, schedule, savedSchedules) {
 	scheduleLink.href = '#';
 	scheduleLink.onclick = function () {
 		drawSchedule(schedule);
+		document.getElementById('button-generate').disabled = false;
 		return false;
 	};
 	scheduleLink.appendChild(document.createTextNode(name));
@@ -295,34 +312,45 @@ window.onload = function () {
 			save('savedSchedules', savedSchedules);
 		}
 	};
+	document.getElementById('button-print').onclick = function () {
+		window.print();
+	}
 	
 	document.getElementById('button-generate').onclick = function () {
 		schedules = generateSchedules(courses);
 		
 		// Display them all
-		if (schedules.length) {
-			document.getElementById('button-save').disabled = '';
-			schedulePosition = loadSchedule(schedules, 0);
-		}
+		schedulePosition = loadSchedule(schedules, 0);
 		
-		else
-			alert('Sorry! There weren\'t any possible schedules.');
+		this.disabled = true;
 	};
 	
 	// Navigating schedules
 	document.getElementById('button-left').onclick = function () { schedulePosition = loadSchedule(schedules, schedulePosition - 1); };
-	document.getElementById('button-right').onclick = function () { schedulePosition = loadSchedule(schedules, schedulePosition + 1); };
+	document.getElementById('button-right').onclick = function () {
+		schedulePosition = loadSchedule(schedules, schedulePosition + 1);
+		this.classList.add('clicked');
+	};
 	document.onkeydown = function (e) {
 		if (e.keyCode == 39)
-			schedulePosition = loadSchedule(schedules, schedulePosition + 1);
+			document.getElementById('button-right').onclick();
 		else if (e.keyCode == 37)
-			schedulePosition = loadSchedule(schedules, schedulePosition - 1);
+			document.getElementById('button-left').onclick();
 	};
 	
 	// For use with the bookmarklet
 	window.onhashchange = function () {
 		if (!window.location.hash)
 			return;
+			
+		if (window.location.hash == '#!bookmarklet') {
+			if (!localStorage.helpMessageSearchPortal) {
+				localStorage.helpMessageSearchPortal = true;
+				alert('Go to Portal and search for some classes! Then click the bookmarklet again once you\'re on the search results page.');
+			}
+			window.location.hash = '#';
+			return;
+		}
 	
 		// Extract information from the hash
 		try {
@@ -330,7 +358,6 @@ window.onload = function () {
 		} catch (e) {
 			return;
 		}
-		console.log('Received payload ' + data);
 		
 		var name = data[0];
 		var times = data[1];
@@ -361,12 +388,13 @@ window.onload = function () {
 			if (existingTimes.indexOf(times) == -1) {
 				existingTimes.push(times);
 				course._node.querySelector('textarea').value = course.times = existingTimes.join('\n');
-				course._node.querySelector('input[type="text"]').onfocus();
 			}
+			course._node.querySelector('input[type="text"]').onfocus();
 		}
 		
 		save('courses', courses);
 		window.location.hash = '';
+		document.getElementById('button-generate').onclick();
 	};
 	window.onhashchange();
 	
@@ -380,13 +408,35 @@ window.onload = function () {
 	for (var name in savedSchedules)
 		addSavedSchedule(name, savedSchedules[name], savedSchedules);
 	
+	// Sigh, browser detection
+	var detection = {
+		'webkit': navigator.userAgent.toLowerCase().indexOf('safari') > -1,
+		'firefox': navigator.userAgent.toLowerCase().indexOf('firefox') > -1,
+		'mac': navigator.userAgent.toLowerCase().indexOf('mac os') > -1
+	};
+	
+	// Firefox printing is ugly
+	if (detection['firefox'])
+		document.getElementById('button-print').style.display = 'none';
+	
 	// Make the bookmarklet
 	document.getElementById('bookmarklet').onclick = function () {
-		alert('Drag this to your bookmarks bar. Search for your classes on Portal, and when you find a class you like on the search page, click the bookmark!');
+		alert('Drag this link to your bookmarks bar. (If you don\'t see the bookmarks bar, '
+			+ (
+				   (detection['webkit'] && 'press ' + (detection['mac'] ? 'Cmd' : 'Ctrl') + '-Shift-B to show it')
+				|| (detection['firefox'] && 'right-click the tab bar and click "Bookmarks Toolbar" to show it')
+				|| 'you\'ll need to enable it. The bookmarklet doesn\'t work if you simply bookmark this page'
+			) + '.) Search for your classes on Portal, and when you find a class you like on the search page, click the Scheduler bookmark!');
 		return false;
 	};
 	document.getElementById('bookmarklet').href = 'javascript:' + 
 			escape('(function(__URL__){'
 				+ document.querySelector('script[type="text/x-js-bookmarklet"]').innerHTML.replace(/\s+/g, ' ') 
 				+ '}("' + window.location.toString().split('#')[0] + '"));');
+				
+	document.getElementById('bookmark-helper').title =
+				   (detection['webkit'] && 'press ' + (detection['mac'] ? 'Cmd' : 'Ctrl') + '-Shift-B to show it')
+				|| (detection['firefox'] && 'right-click the tab bar and click "Bookmarks Toolbar" to show it')
+				|| '';
+
 };

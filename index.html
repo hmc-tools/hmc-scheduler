@@ -7,28 +7,30 @@
 	</head>
 	<body>
 		<div id="controls">
-			<h1>Scheduler <span style="font-weight: normal">(<span id="page-number">1</span> of <span id="page-count">1</span>)</span>
+			<h1>Scheduler 
+				<span id="page-counter" style="font-weight: normal">
+					<span id="pages">(<span id="page-number">1</span> of <span id="page-count">1</span>)</span>
+					<span id="pages-not-possible">(no schedules possible)</span>
+				</span>
 				<button id="button-right" disabled="disabled" title="(you can also use your arrow keys)">&gt;</button> 
 				<button id="button-left" disabled="disabled" title="(you can also use your arrow keys)">&lt;</button>
-				<button id="button-save" disabled="disabled" title="Save">:D</button>
 			</h1>
 			
 			<div class="text">
 				Here's a tool to help you arrange your classes by showing every possible schedule. Here's how to use it:
 				<ol>
-					<li>Drag this <a href="#" id="bookmarklet">Scheduler</a> bookmarklet to your bookmarks</li>
-					<li>Do a search on Portal for the classes you want to take</li>
-					<li>Click the Scheduler bookmarklet while on the results page</li>
-					<li>Add every section of a class using the "schedule" button</li>
-					<li>Repeat for every class you're interested in</li>
-					<li>Now click Generate to see every possible schedule</li>
+					<li>Drag this <a href="#" id="bookmarklet">Scheduler</a> bookmarklet to your <a id="bookmark-helper">bookmarks bar</a></li>
+					<li>Search on Portal for the classes you want to take</li>
+					<li>Click the Scheduler bookmarklet while on the search results</li>
+					<li>Add all the sections of classes you like</li>
+					<li>Navigate possible schedules using the arrows above</li>
 					<li>Save/print the ones you like!</li>
 				</ol>
 				
 				You can also manually edit course titles, times, and colors by clicking its course title.
 			</div>
 			
-			<h1>Courses <button id="button-generate">Generate</button> <button id="button-add">+</button></h1>
+			<h1>Courses <button id="button-generate" disabled="disabled">Generate</button> <button id="button-add">+</button></h1>
 			<div id="courses-container">
 				<div id="courses-filler" class="text">Click the add button or use the bookmarklet above to get started!</div>
 				<div id="courses">
@@ -39,16 +41,19 @@
 							<a class="c" href="#">c</a>
 						</div>
 						<div class="course-input">
-							<input type="text" placeholder="Course Name" title="(double-click to collapse)" />
+							<input type="text" placeholder="Course Name" />
 							<textarea placeholder="MWF 01:15PM-02:30PM"></textarea>
 						</div>
 					</div>
 				</div>
 			</div>
 			
-			<h1>Saved Schedules</h1>
+			<h1>Starred Schedules
+				<button id="button-save" disabled="disabled" title="Save">&#9733;</button>
+				<button id="button-print" disabled="disabled" title="Print">Print</button>
+			</h1>
 			<div id="saved-schedules-container" class="text empty">
-				<div id="saved-schedules-filler">Generate some schedules and save the ones you like!</div>
+				<div id="saved-schedules-filler">Generate some schedules and star the ones you like!</div>
 				<div id="saved-schedules"></div>
 			</div>
 			
@@ -94,42 +99,61 @@
 		</table>
 		
 		<!-- This code is to be run on Portal search pages. All multiple spaces will be replaced with a single space!
-			 Be careful not to use // line comments, as new lines will be replaced! -->
+			 Be careful not to use // line comments, as new lines will be replaced with spaces! -->
 		<script type="text/x-js-bookmarklet">
 			function getValue(node) {
 				/* Remove non-breaking spaces */
 				return (node.firstChild.nodeValue || '').replace(String.fromCharCode(0xA0), ' ').trim();
 			}
 
-			var loader = window.open(__URL__, 'loader', 'resizable=yes, scrollbars=yes, titlebar=yes, width=1100, height=600, top=10, left=10');
+			if (window.location.toString().indexOf('jics1.hmc.edu/ICS/Course_Registration') == -1)
+				window.location = __URL__ + '#!bookmarklet';
+			
+			else if (!window.schedulerModified) {
+				window.schedulerModified = true;
+			
+				Array.prototype.filter.call(document.querySelectorAll('.groupedGrid tr:not(.subItem)'), function (node) { 
+					return node.children.length == 10 && node.children[0].nodeName == 'TD';
+				}).forEach(function (row) {
+					var data = {
+						'courseCode': getValue(row.children[1].children[0]),
+						'courseName': getValue(row.children[2]),
+						'professors': Array.prototype.map.call(row.children[3].querySelectorAll('li'), getValue),
+						'seats': getValue(row.children[4]),
+						'status': getValue(row.children[5]),
+						'timeSlots': Array.prototype.map.call(row.children[6].querySelectorAll('li'), getValue),
+						'credits': +getValue(row.children[7]),
+						'startDate': getValue(row.children[8]),
+						'endDate': getValue(row.children[9])
+					};
+					
+					var payload = JSON.stringify([
+						data.courseName,
+						data.timeSlots.map(function (timeSlot) {
+							return timeSlot.split('.')[0];
+						}).join(', '),
+						1 /* version */
+					]);
 
-			Array.prototype.filter.call(document.querySelectorAll('.groupedGrid tr:not(.subItem)'), function (node) { return node.children.length == 10 && node.children[0].nodeName == 'TD'; }).forEach(function (row) {
-				var data = {
-					'courseCode': getValue(row.children[1].children[0]),
-					'courseName': getValue(row.children[2]),
-					'professors': Array.prototype.map.call(row.children[3].querySelectorAll('li'), getValue),
-					'seats': getValue(row.children[4]),
-					'status': getValue(row.children[5]),
-					'timeSlots': Array.prototype.map.call(row.children[6].querySelectorAll('li'), getValue),
-					'credits': +getValue(row.children[7]),
-					'startDate': getValue(row.children[8]),
-					'endDate': getValue(row.children[9])
-				};
+					var link = document.createElement('a');
+					link.href = __URL__ + '#' + escape(payload);
+					link.target = 'loader';
+					link.innerHTML = 'Schedule';
+					link.onclick = function () { 
+						this.style.color = 'black';
+						this.style.textDecoration = 'none';
+						this.innerHTML = 'section added';
+					};
+					row.children[0].insertBefore(link, row.children[0].firstChild);
+				});
 				
-				var payload = JSON.stringify([
-					data.courseName,
-					data.timeSlots.map(function (timeSlot) {
-						return timeSlot.split('.')[0];
-					}).join(', ')
-				]);
-
-				var link = document.createElement('a');
-				link.href = __URL__ + '#' + escape(payload);
-				link.target = 'loader';
-				link.innerHTML = 'Schedule';
-				link.onclick = function () { this.style.color = 'purple'; };
-				row.children[0].insertBefore(link, row.children[0].firstChild);
-			});
+				if (!localStorage.helpMessageSeen2) {
+					localStorage.helpMessageSeen2 = true;
+					alert('On the Portal page, you\'ll see a "schedule" link next to each of the classes. Add every section of a class you\'re interested in!');
+				}
+				
+				var loader = window.open(__URL__, 'loader', 'resizable=yes, scrollbars=yes, titlebar=yes, width=1300, height=700, top=10, left=300');
+			}
 		</script>
 	</body>
 </html>
