@@ -8,7 +8,7 @@
 	<body>
 		<div id="controls">
 			<h1>Scheduler 
-				<span id="page-counter" style="font-weight: normal">
+				<span id="page-counter" class="not-empty" style="font-weight: normal">
 					<span id="pages">(<span id="page-number">1</span> of <span id="page-count">1</span>)</span>
 					<span id="pages-not-possible">(no schedules possible)</span>
 				</span>
@@ -20,14 +20,13 @@
 				Here's a tool to help you arrange your classes by showing every possible schedule. Here's how to use it:
 				<ol>
 					<li>Drag this <a href="#" id="bookmarklet">Scheduler</a> bookmarklet to your <a id="bookmark-helper">bookmarks bar</a></li>
-					<li>Search on Portal for the classes you want to take</li>
-					<li>Click the Scheduler bookmarklet while on the search results</li>
-					<li>Add all the sections of classes you like</li>
+					<li>Go to Portal and click the Scheduler bookmarklet</li>
+					<li>Search for and add all the sections of classes you like</li>
 					<li>Navigate possible schedules using the arrows above</li>
 					<li>Save/print the ones you like!</li>
 				</ol>
 				
-				You can also manually edit course titles, times, and colors by clicking its course title.
+				You can also manually edit course titles, times, and colors by clicking its course title. (Be careful with half-semester courses &ndash; if they're at the same time, this'll tell you that they conflict.)
 			</div>
 			
 			<h1>Courses <button id="button-generate" disabled="disabled">Generate</button> <button id="button-add">+</button></h1>
@@ -37,8 +36,8 @@
 					<div class="course hidden template" id="course-template">
 						<div class="course-controls">
 							<input type="checkbox" checked="checked" />
-							<a class="x" href="#">x</a>
-							<a class="c" href="#">c</a>
+							<a class="x" href="#" title="Delete">x</a>
+							<a class="c" href="#" title="Change color">c</a>
 						</div>
 						<div class="course-input">
 							<input type="text" placeholder="Course Name" />
@@ -58,7 +57,7 @@
 			</div>
 			
 			<div class="text">
-				Bugs or suggestions? <a href="mailto:cchu@hmc.edu">Email me</a> or <a href="https://github.com/bitsofpancake/hmc-scheduler">fork it on GitHub</a>!
+				Bugs or suggestions? <a href="mailto:cchu@hmc.edu">Email me</a> or <a href="https://github.com/bitsofpancake/hmc-scheduler" target="_blank">fork it on GitHub</a>!
 			</div>
 		</div>
 	
@@ -98,7 +97,7 @@
 			</tr>
 		</table>
 		
-		<!-- This code is to be run on Portal search pages. All multiple spaces will be replaced with a single space!
+		<!-- This code is to be run on Portal pages. All multiple spaces will be replaced with a single space!
 			 Be careful not to use // line comments, as new lines will be replaced with spaces! -->
 		<script type="text/x-js-bookmarklet">
 			function getValue(node) {
@@ -106,12 +105,27 @@
 				return (node.firstChild.nodeValue || '').replace(String.fromCharCode(0xA0), ' ').trim();
 			}
 
-			if (window.location.toString().indexOf('jics1.hmc.edu/ICS/Course_Registration') == -1)
+			if (!window.Portal) {
 				window.location = __URL__ + '#!bookmarklet';
+				return;
+			}
 			
-			else if (!window.schedulerModified) {
-				window.schedulerModified = true;
+			var loader = false;
 			
+			/* Clear this page and replace it with a full-page frame */
+			while (document.body.firstChild)
+				document.body.removeChild(document.body.firstChild);
+			document.body.parentNode.style.height = document.body.style.height = '100%';
+			
+			var frame = document.createElement('iframe');
+			frame.src = '/ICS/Course_Registration/';
+			frame.style.position = 'fixed';
+			frame.style.height = frame.style.width = '100%';
+			frame.style.top = frame.bottom = frame.style.border = 0;
+			frame.onload = function () {
+				var document = frame.contentWindow.document;
+				
+				/* Add the "schedule" links */
 				Array.prototype.filter.call(document.querySelectorAll('.groupedGrid tr:not(.subItem)'), function (node) { 
 					return node.children.length == 10 && node.children[0].nodeName == 'TD';
 				}).forEach(function (row) {
@@ -127,12 +141,12 @@
 						'endDate': getValue(row.children[9])
 					};
 					
+					/* To-do: should use window.postMessage */
 					var payload = JSON.stringify([
 						data.courseName,
 						data.timeSlots.map(function (timeSlot) {
 							return timeSlot.split('.')[0];
-						}).join(', '),
-						1 /* version */
+						}).join(', ')
 					]);
 
 					var link = document.createElement('a');
@@ -143,17 +157,26 @@
 						this.style.color = 'black';
 						this.style.textDecoration = 'none';
 						this.innerHTML = 'section added';
+						
+						if (!loader || loader.closed)
+							loader = window.open(__URL__ + '#!v=' + __VERSION__, 'loader', 'resizable=yes, scrollbars=yes, titlebar=yes, width=1300, height=700, top=10, left=300');
 					};
 					row.children[0].insertBefore(link, row.children[0].firstChild);
 				});
 				
-				if (!localStorage.helpMessageSeen2) {
-					localStorage.helpMessageSeen2 = true;
-					alert('On the Portal page, you\'ll see a "schedule" link next to each of the classes. Add every section of a class you\'re interested in!');
-				}
-				
-				var loader = window.open(__URL__, 'loader', 'resizable=yes, scrollbars=yes, titlebar=yes, width=1300, height=700, top=10, left=300');
+				/* Give some indication that we're modifying the page */
+				document.querySelector('a[title="Course Registration"]').innerHTML += ' + Scheduler';
+			};
+			document.body.appendChild(frame);
+			
+			if ((localStorage.helpMessage || 0) < 1) {
+				localStorage.helpMessage = 1;
+				alert('Search for some classes, and you\'ll see a "schedule" link next to each result. Add every section of a class you\'re interested in, and then you can generate all possible schedules!');
 			}
+			
+			window.onbeforeunload = function () {
+				return 'Portal doesn\'t like it when you refresh or press the back button. Are you sure you want to continue?';
+			};
 		</script>
 	</body>
 </html>

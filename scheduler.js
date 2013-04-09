@@ -284,6 +284,7 @@ function save(type, arr) {
 }
 
 window.onload = function () {
+	var VERSION = 2;
 
 	// Load data
 	var courses = localStorage.courses ? JSON.parse(localStorage.courses) : [];
@@ -342,11 +343,19 @@ window.onload = function () {
 	window.onhashchange = function () {
 		if (!window.location.hash)
 			return;
-			
+		
+		// Version check
+		if (window.location.hash.indexOf('#!v=') == 0) {
+			if (+window.location.hash.substr('#!v='.length) < VERSION)
+				alert('Your bookmarklet looks outdated! You should redrag the bookmark to the bookmarks bar.');
+			window.location.hash = '#';
+			return;
+		}
+		
 		if (window.location.hash == '#!bookmarklet') {
 			if (!localStorage.helpMessageSearchPortal) {
 				localStorage.helpMessageSearchPortal = true;
-				alert('Go to Portal and search for some classes! Then click the bookmarklet again once you\'re on the search results page.');
+				alert('Go to Portal before you click this bookmark!');
 			}
 			window.location.hash = '#';
 			return;
@@ -396,7 +405,6 @@ window.onload = function () {
 		window.location.hash = '';
 		document.getElementById('button-generate').onclick();
 	};
-	window.onhashchange();
 	
 	// Display all the courses
 	if (courses.length) {
@@ -426,17 +434,18 @@ window.onload = function () {
 				   (detection['webkit'] && 'press ' + (detection['mac'] ? 'Cmd' : 'Ctrl') + '-Shift-B to show it')
 				|| (detection['firefox'] && 'right-click the tab bar and click "Bookmarks Toolbar" to show it')
 				|| 'you\'ll need to enable it. The bookmarklet doesn\'t work if you simply bookmark this page'
-			) + '.) Search for your classes on Portal, and when you find a class you like on the search page, click the Scheduler bookmark!');
+			) + '.) Then, go to Portal and click the Scheduler bookmarklet!');
 		return false;
 	};
 	document.getElementById('bookmarklet').href = 'javascript:' + 
-			escape('(function(__URL__){'
+			escape('(function(__URL__,__VERSION__){'
 				+ document.querySelector('script[type="text/x-js-bookmarklet"]').innerHTML.replace(/\s+/g, ' ') 
-				+ '}("' + window.location.toString().split('#')[0] + '"));');
+				+ '}("' + window.location.toString().split('#')[0] + '", ' + VERSION + '));');
 				
 	document.getElementById('bookmark-helper').title =
 				   (detection['webkit'] && 'press ' + (detection['mac'] ? 'Cmd' : 'Ctrl') + '-Shift-B to show it')
 				|| (detection['firefox'] && 'right-click the tab bar and click "Bookmarks Toolbar" to show it')
 				|| '';
-
+				
+	window.onhashchange();
 };
