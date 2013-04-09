@@ -12,7 +12,10 @@ function addCourse(course, i, courses) {
 	if (course.name) courseNode.querySelector('input[type="text"]').value = course.name;
 	courseNode.querySelector('input[type="checkbox"]').checked = course.selected;
 	if (course.times) courseNode.querySelector('textarea').value = course.times;	
-	if (course.color) courseNode.querySelector('input[type="text"]').style.backgroundColor = course.color;
+	if (course.color) {
+		courseNode.querySelector('input[type="text"]').style.backgroundColor = course.color;
+		RandomColor.register(course.color);
+	}
 	
 	// Collapsing and expanding
 	courseNode.querySelector('input[type="text"]').onfocus = function () {
@@ -71,7 +74,8 @@ function addCourse(course, i, courses) {
 	
 	// Change colors
 	courseNode.querySelector('.c').onclick = function () {
-		courseNode.querySelector('input[type="text"]').style.backgroundColor = course.color = randomColor();
+		RandomColor.unregister(course.color);
+		courseNode.querySelector('input[type="text"]').style.backgroundColor = course.color = RandomColor.get();
 		save('courses', courses);
 		document.getElementById('button-generate').disabled = false;
 		return false;
@@ -84,17 +88,27 @@ function addCourse(course, i, courses) {
 	document.getElementById('button-generate').disabled = false;
 }
 
-var randomColor = (function generate() {
-	var colorChoices = [];
-	for (var i = 0; i < 360; i += 3)
-		colorChoices.push('hsl(' + i + ', 73%, 90%)');
-	colorChoices = colorChoices.sort(function () { return Math.random() - .5; });
-	return function () {
-		if (colorChoices.length)
-			return colorChoices.pop();
-			
-		randomColor = generate();
-		return randomColor();
+var RandomColor = (function () {
+	var used = {};
+	var colors = [];
+	for (var i = 0; i < 360; i += 24)
+		colors.push('hsl(' + i + ', 73%, 90%)');
+	colors = colors.sort(function () { return Math.random() - .5; });
+	
+	return {
+		'get': function () {
+			var color = colors.filter(function (color) {
+					return !(color in used);
+				})[0] || colors[Math.floor(Math.random() * colors.length)];
+			used[color] = true;
+			return color;
+		},
+		'register': function (color) {
+			used[color] = true;
+		},
+		'unregister': function (color) {
+			delete used[color];
+		}
 	};
 }());
 
@@ -298,7 +312,7 @@ window.onload = function () {
 			'name': '',
 			'selected': true,
 			'times': '',
-			'color': randomColor()
+			'color': RandomColor.get()
 		};
 		courses.push(course);
 		addCourse(course, 0, courses);
@@ -385,7 +399,7 @@ window.onload = function () {
 				'name': name,
 				'selected': true,
 				'times': times,
-				'color': randomColor()
+				'color': RandomColor.get()
 			};
 			courses.push(course);
 			addCourse(course, 0, courses);

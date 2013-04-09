@@ -17,7 +17,7 @@
 			</h1>
 			
 			<div class="text">
-				Here's a tool to help you arrange your classes by showing every possible schedule. Here's how to use it:
+				Here's a tool to help you arrange the classes you want to take. It'll show you every possible schedule. Here's how to use it:
 				<ol>
 					<li>Drag this <a href="#" id="bookmarklet">Scheduler</a> bookmarklet to your <a id="bookmark-helper">bookmarks bar</a></li>
 					<li>Go to Portal and click the Scheduler bookmarklet</li>
@@ -177,6 +177,17 @@
 			window.onbeforeunload = function () {
 				return 'Portal doesn\'t like it when you refresh or press the back button. Are you sure you want to continue?';
 			};
+		</script>
+		
+		<script type="text/javascript">
+			addEventListener('load', function () {
+				window._gstc_lt = +new Date;
+				window.GoSquared = {'acct': 'GSN-941508-N'};
+				var g = document.createElement('script');
+				g.type = 'text/javascript';
+				g.src = '//d1l6p2sc9645hc.cloudfront.net/tracker.js';
+				document.body.appendChild(g);
+			}, false);
 		</script>
 	</body>
 </html>
