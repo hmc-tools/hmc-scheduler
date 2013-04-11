@@ -146,6 +146,9 @@
 						data.courseName,
 						data.timeSlots.map(function (timeSlot) {
 							return timeSlot.split('.')[0];
+						}).filter(function (timeSlot, i, arr) {
+							/* remove duplicates */
+							return arr.lastIndexOf(timeSlot) == i;
 						}).join(', ')
 					]);
 
