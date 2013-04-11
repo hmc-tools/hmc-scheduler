@@ -97,9 +97,13 @@ var RandomColor = (function () {
 	
 	return {
 		'get': function () {
-			var color = colors.filter(function (color) {
-					return !(color in used);
-				})[0] || colors[Math.floor(Math.random() * colors.length)];
+			// Get the unused colors
+			var colorsUnused = colors.filter(function (color) { return !(color in used); });
+			if (colors.length == 0)
+				colorsUnused = colors;
+				
+			// Pick a random color
+			var color = colorsUnused[Math.floor(Math.random() * colorsUnused.length)];
 			used[color] = true;
 			return color;
 		},
