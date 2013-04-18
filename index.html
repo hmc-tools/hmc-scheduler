@@ -7,7 +7,7 @@
 	<body>
 		<div id="controls">
 			<h1>Scheduler 
-				<span id="page-counter" class="not-empty" style="font-weight: normal">
+				<span id="page-counter" class="not-empty">
 					<span id="pages">(<span id="page-number">1</span> of <span id="page-count">1</span>)</span>
 					<span id="pages-not-possible">(no schedules possible)</span>
 				</span>
@@ -28,7 +28,10 @@
 				You can also manually edit course titles, times, and colors by clicking its course title. (Be careful with half-semester courses &ndash; if they're at the same time, this'll tell you that they conflict.)
 			</div>
 			
-			<h1>Courses <button id="button-generate" disabled="disabled">Generate</button> <button id="button-add">+</button></h1>
+			<h1>Courses 
+				<span id="credit-counter"></span>
+				<button id="button-generate" disabled="disabled">Generate</button> <button id="button-add">+</button>
+			</h1>
 			<div id="courses-container">
 				<div id="courses-filler" class="text">Click the add button or use the bookmarklet above to get started!</div>
 				<div id="courses">
@@ -134,12 +137,7 @@
 						'professors': Array.prototype.map.call(row.children[3].querySelectorAll('li'), getValue),
 						'seats': getValue(row.children[4]),
 						'status': getValue(row.children[5]),
-						'timeSlots': Array.prototype.map.call(row.children[6].querySelectorAll('li'), getValue).map(function (timeSlot) {
-								return timeSlot.split('.')[0];
-							}).filter(function (timeSlot, i, arr) {
-								/* remove duplicates */
-								return arr.lastIndexOf(timeSlot) == i;
-							}),
+						'timeSlots': Array.prototype.map.call(row.children[6].querySelectorAll('li'), getValue),
 						'credits': +getValue(row.children[7]),
 						'startDate': getValue(row.children[8]),
 						'endDate': getValue(row.children[9])
@@ -182,7 +180,7 @@
 			};
 		</script>
 		
-		<script src="scheduler.js" type="text/javascript"></script>
+		<script src="scheduler.js?v=3" type="text/javascript"></script>
 		
 		<script type="text/javascript">
 			addEventListener('load', function () {

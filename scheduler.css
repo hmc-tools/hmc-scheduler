@@ -184,19 +184,10 @@ td {
 	display: none;
 }
 
-/*
-#button-right:not([disabled]):not(.clicked) {
-	-webkit-animation-name: blinker;  
-	-webkit-animation-iteration-count: infinite;  
-	-webkit-animation-timing-function: ease-in-out;
-	-webkit-animation-duration: 1s; 
+#page-counter, #credit-counter {
+	font-weight: normal
 }
-@-webkit-keyframes blinker {  
-	from { box-shadow: 0 0 50px #fc0; }
-	50% { box-shadow: 0 0 50px #fff; }
-	to { box-shadow: 0 0 50px #fc0; }
-}
-*/
+
 @media print {
 	html {
 		-webkit-print-color-adjust: exact;

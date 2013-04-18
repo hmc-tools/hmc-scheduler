@@ -386,22 +386,38 @@ function messageOnce(str) {
 		}
 		
 		var name = data['courseName'];
-		var times = data['timeSlots'].join(', ');
-		var course = false;
+		
+		// Build the timeSlot string.
+		var timeSlot = 
+			data['courseCode'].replace(/\s+/g, ' ') + ' (' +
+			
+			data['professors'].map(function (prof) {
+					// Only last names to save space.
+					return prof.split(',')[0];
+				}).join(', ') + '): ' + 
+				
+			data['timeSlots'].map(function (timeSlot) {
+					return timeSlot.split('.')[0];
+				}).filter(function (timeSlot, i, arr) {
+					// Remove duplicates
+					return arr.lastIndexOf(timeSlot) == i;
+				}).join(', ');
 		
 		// See if the course being passed in is already in the course list
+		var course = false;
 		for (var i = 0; i < courses.length; i++)
 			if (courses[i].name == name) {
 				course = courses[i];
 				break;
 			}
-			
+	
 		// Not there yet? Make it.
 		if (!course) {
 			course = {
 				'name': name,
 				'selected': true,
-				'times': times,
+				'times': timeSlot,
+				'data': data,
 				'color': RandomColor.get()
 			};
 			courses.push(course);
@@ -410,9 +426,10 @@ function messageOnce(str) {
 		
 		// Add this time to the list if it's not already there
 		else {
+			course.data = data;
 			var existingTimes = course.times.split('\n');
-			if (existingTimes.indexOf(times) == -1) {
-				existingTimes.push(times);
+			if (existingTimes.indexOf(timeSlot) == -1) {
+				existingTimes.push(timeSlot);
 				course._node.querySelector('textarea').value = course.times = existingTimes.join('\n');
 			}
 			course._node.querySelector('input[type="text"]').onfocus();
