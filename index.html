@@ -16,16 +16,17 @@
 			</h1>
 			
 			<div class="text">
-				Here's a tool to help you arrange the classes you want to take. It'll show you every possible schedule. Here's how to use it:
+				Here's a tool to help you arrange the classes you want to take. Give it all the sections of the classes you want, and it'll tell you all compatible permutations. Here's how to use it:
 				<ol>
-					<li>Drag this <a href="#" id="bookmarklet">Scheduler</a> bookmarklet to your <a id="bookmark-helper">bookmarks bar</a></li>
+					<li>Drag this <a href="#" id="bookmarklet">Scheduler</a> bookmarklet to your <a id="bookmark-helper">bookmarks bar</a> 
+						<span style="font-size: 0.8em">(you need to drag it &mdash; just bookmarking this page will not work!)</span>
+					</li>
 					<li>Go to Portal and click the Scheduler bookmarklet</li>
 					<li>Search for and add all the sections of classes you like</li>
-					<li>Navigate possible schedules using the arrows above</li>
-					<li>Save/print the ones you like!</li>
+					<li>Navigate possible schedules using the arrows above!</li>
 				</ol>
 				
-				You can also manually edit course titles, times, and colors by clicking its course title. (Be careful with half-semester courses &ndash; if they're at the same time, this'll tell you that they conflict.)
+				(Be careful with half-semester courses &ndash; if they're at the same time, this'll tell you that they conflict.)
 			</div>
 			
 			<h1>Courses 
@@ -43,14 +44,14 @@
 						</div>
 						<div class="course-input">
 							<input type="text" placeholder="Course Name" />
-							<textarea placeholder="MWF 01:15PM-02:30PM"></textarea>
+							<textarea placeholder="EXAM010 HM-01 (Staff): MWF 01:15PM-02:30PM"></textarea>
 						</div>
 					</div>
 				</div>
 			</div>
 			
 			<h1>Starred Schedules
-				<button id="button-save" disabled="disabled" title="Save">&#9733;</button>
+				<button id="button-save" disabled="disabled" title="Star">&#9733;</button>
 				<button id="button-print" disabled="disabled" title="Print">Print</button>
 			</h1>
 			<div id="saved-schedules-container" class="text empty">
@@ -99,7 +100,7 @@
 			</tr>
 		</table>
 		
-		<!-- This code is to be run on Portal pages. All multiple spaces will be replaced with a single space!
+		<!-- This code is to be run on Portal pages. All multiple spaces and /* comments */ will be replaced with a single space.
 			 Be careful not to use // line comments, as new lines will be replaced with spaces! -->
 		<script type="text/x-js-bookmarklet">
 			function getValue(node) {
@@ -153,7 +154,14 @@
 						
 						if (!loader || loader.closed) {
 							loader = window.open(__URL__ + '#!v=' + __VERSION__, 'loader', 'resizable=yes, scrollbars=yes, titlebar=yes, width=1300, height=700, top=10, left=300');
-							message = JSON.stringify(data);
+
+							/* Silly workaround for not being able to set loader.onload */
+							window.addEventListener('message', function (e) {
+								if (e.data == 'loaded') {
+									loader.postMessage(JSON.stringify(data), '*');
+									window.removeEventListener('message', arguments.callee, false);
+								}
+							}, false);
 						} else
 							loader.postMessage(JSON.stringify(data), '*');
 							
@@ -167,6 +175,7 @@
 			};
 			document.body.appendChild(frame);
 			
+			/* Show a help message if they haven't seen it before. */
 			if ((localStorage.helpMessage || 0) < 1) {
 				localStorage.helpMessage = 1;
 				alert('Search for some classes, and you\'ll see a "schedule" link next to each result. Add every section of a class you\'re interested in, and then you can generate all possible schedules!');
@@ -176,14 +185,6 @@
 				return 'Portal doesn\'t like it when you refresh or press the back button. Are you sure you want to continue?';
 			};
 			
-			/* Silly workaround for no being able to set loader.onload */
-			var message = false;
-			window.onmessage = function () {
-				if (message) {
-					loader.postMessage(message, '*');
-					message = false;
-				}
-			};
 		</script>
 		
 		<script src="scheduler.js?v=3" type="text/javascript"></script>

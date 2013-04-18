@@ -500,7 +500,8 @@ function messageOnce(str) {
 	};
 	document.getElementById('bookmarklet').href = 'javascript:' + 
 			escape('(function(__URL__,__VERSION__){'
-				+ document.querySelector('script[type="text/x-js-bookmarklet"]').innerHTML.replace(/\s+/g, ' ') 
+				// Replace spaces and /* comments */
+				+ document.querySelector('script[type="text/x-js-bookmarklet"]').innerHTML.replace(/(\s+|\/\*[\S\s]*?\*\/)/g, ' ')
 				+ '}("' + window.location.toString().split('#')[0] + '", ' + VERSION + '));');
 				
 	document.getElementById('bookmark-helper').title =
