@@ -305,6 +305,7 @@ function messageOnce(str) {
 		return false;
 		
 	localStorage['message_' + str] = true;
+	return true;
 }
 
 (function () {
