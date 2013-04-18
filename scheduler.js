@@ -301,11 +301,10 @@ function save(type, arr) {
 	localStorage[type] = JSON.stringify(arr);
 }
 function messageOnce(str) {
-	if (!localStorage['message_' + str]) {
-		localStorage['message_' + str] = true;
-		return true;
-	}
-	return false;
+	if (localStorage['message_' + str])
+		return false;
+		
+	localStorage['message_' + str] = true;
 }
 
 (function () {
@@ -320,7 +319,7 @@ function messageOnce(str) {
 	
 	// It looks like they clicked directly on the bookmark going to Portal.
 	if (window.location.hash == '#!bookmarklet') {
-		if (!messageOnce('search-portal'))
+		if (messageOnce('search-portal'))
 			alert('Go to Portal before you click this bookmark!');
 			
 		window.location.hash = '#';
