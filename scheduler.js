@@ -1,3 +1,7 @@
+var options = {
+	'showSections': false
+};
+
 var openNode = false;
 var tabIndex = 0;
 function addCourse(course, i, courses) {
@@ -161,7 +165,12 @@ function drawSchedule(schedule) {
 		var div = document.createElement('div');
 		div.style.top = hourHeight * (timeSlot.from - beginHour) + 'px';
 		div.style.backgroundColor = timeSlot.course.color;
-		div.innerHTML = '<b>' + timeSlot.course.name + '</b><br />' + formatHours(timeSlot.from) + ' - ' + formatHours(timeSlot.to);
+		div.innerHTML = (options.showSections && timeSlot.section ? 
+				timeSlot.section.replace(/^([^(]+)\((.*)\)/, function (_, code, profs) {
+					return '<b>' + code + '</b><br />' + profs;
+				}) 
+				: '<b>' + timeSlot.course.name + '</b>') + 
+			'<br />' + formatHours(timeSlot.from) + ' - ' + formatHours(timeSlot.to);
 		
 		days[timeSlot.weekday].appendChild(div);
 		
@@ -221,12 +230,16 @@ function generateSchedules(courses) {
 		// Parse every line separately
 		return course.times.split('\n').map(function (timeSlot) {
 		
+			// Extract the section info from the string, if it's there.
+			var section = timeSlot.indexOf(': ') > -1 ? timeSlot.split(': ')[0] : '';
+			
 			// Split it into a list of each day's time slot
 			var args = [];
 			timeSlot.replace(/([MTWRF]+) (\d?\d):(\d\d)\s*(AM|PM)?\s*\-\s?(\d?\d):(\d\d)\s*(AM|PM)?/gi, function (_, daylist, h1, m1, pm1, h2, m2, pm2) {
 				daylist.split('').forEach(function (day) {
 					args.push({
 						'course': course,
+						'section': section,
 						'weekday': 'MTWRF'.indexOf(day), 
 						'from': timeToHours(+h1, +m1, (pm1 || pm2) == 'PM'),
 						'to': timeToHours(+h2, +m2, (pm2 || pm1) == 'PM'),
@@ -379,6 +392,12 @@ function messageOnce(str) {
 		document.getElementById('credit-counter').innerHTML = isNaN(count) ? '' : '(' + count.toFixed(1) + ' credits)';
 		
 		this.disabled = true;
+	};
+	
+	document.getElementById('button-sections').checked = options.showSections = localStorage.showSections;
+	document.getElementById('button-sections').onclick = function () {
+		localStorage.showSections = options.showSections = this.checked;
+		document.getElementById('button-generate').onclick();
 	};
 	
 	// Navigating schedules

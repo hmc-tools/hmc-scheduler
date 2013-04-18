@@ -76,6 +76,10 @@ td {
 #controls h1 button {
 	float: right;
 }
+#controls h1 input {
+	float: right;
+	margin: 7px 7px;
+}
 
 :link, :visited {
 	color: #333;
