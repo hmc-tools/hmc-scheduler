@@ -300,9 +300,31 @@ function save(type, arr) {
 	lastModified = localStorage.lastModified = Date.now();
 	localStorage[type] = JSON.stringify(arr);
 }
+function messageOnce(str) {
+	if (!localStorage['message_' + str]) {
+		localStorage['message_' + str] = true;
+		return true;
+	}
+	return false;
+}
 
-window.onload = function () {
-	var VERSION = 2;
+(function () {
+	var VERSION = 3;
+
+	// Version check
+	if (window.location.hash.indexOf('#!v=') == 0) {
+		if (+window.location.hash.substr('#!v='.length) < VERSION)
+			alert('Your bookmarklet looks outdated! You should redrag the bookmark to the bookmarks bar.');
+		window.location.hash = '#';
+	}
+	
+	// It looks like they clicked directly on the bookmark going to Portal.
+	if (window.location.hash == '#!bookmarklet') {
+		if (!messageOnce('search-portal'))
+			alert('Go to Portal before you click this bookmark!');
+			
+		window.location.hash = '#';
+	}
 
 	// Load data
 	var courses = localStorage.courses ? JSON.parse(localStorage.courses) : [];
@@ -331,9 +353,6 @@ window.onload = function () {
 			save('savedSchedules', savedSchedules);
 		}
 	};
-	document.getElementById('button-print').onclick = function () {
-		window.print();
-	}
 	
 	document.getElementById('button-generate').onclick = function () {
 		schedules = generateSchedules(courses);
@@ -357,37 +376,17 @@ window.onload = function () {
 			document.getElementById('button-left').onclick();
 	};
 	
-	// For use with the bookmarklet
-	window.onhashchange = function () {
-		if (!window.location.hash)
-			return;
-		
-		// Version check
-		if (window.location.hash.indexOf('#!v=') == 0) {
-			if (+window.location.hash.substr('#!v='.length) < VERSION)
-				alert('Your bookmarklet looks outdated! You should redrag the bookmark to the bookmarks bar.');
-			window.location.hash = '#';
-			return;
-		}
-		
-		if (window.location.hash == '#!bookmarklet') {
-			if (!localStorage.helpMessageSearchPortal) {
-				localStorage.helpMessageSearchPortal = true;
-				alert('Go to Portal before you click this bookmark!');
-			}
-			window.location.hash = '#';
-			return;
-		}
-	
-		// Extract information from the hash
+	// Messages from the bookmarklet
+	window.onmessage = function (e) {
+		// Extract information from the message
 		try {
-			var data = JSON.parse(unescape(window.location.hash.substr(1)));
+			var data = JSON.parse(e.data);
 		} catch (e) {
 			return;
 		}
 		
-		var name = data[0];
-		var times = data[1];
+		var name = data['courseName'];
+		var times = data['timeSlots'].join(', ');
 		var course = false;
 		
 		// See if the course being passed in is already in the course list
@@ -420,7 +419,6 @@ window.onload = function () {
 		}
 		
 		save('courses', courses);
-		window.location.hash = '';
 		document.getElementById('button-generate').onclick();
 	};
 	
@@ -436,6 +434,7 @@ window.onload = function () {
 	
 	// Sigh, browser detection
 	var detection = {
+		'chrome': !!window.chrome,
 		'webkit': navigator.userAgent.toLowerCase().indexOf('safari') > -1,
 		'firefox': navigator.userAgent.toLowerCase().indexOf('firefox') > -1,
 		'mac': navigator.userAgent.toLowerCase().indexOf('mac os') > -1
@@ -444,6 +443,12 @@ window.onload = function () {
 	// Firefox printing is ugly
 	if (detection['firefox'])
 		document.getElementById('button-print').style.display = 'none';
+	
+	document.getElementById('button-print').onclick = function () {
+		if (detection['chrome'] && messageOnce('print-tip'))
+			alert('Pro-tip: Chrome has an option on the Print dialog to disable Headers and Footers, which makes for a prettier schedule!');
+		window.print();
+	};
 	
 	// Make the bookmarklet
 	document.getElementById('bookmarklet').onclick = function () {
@@ -464,6 +469,4 @@ window.onload = function () {
 				   (detection['webkit'] && 'press ' + (detection['mac'] ? 'Cmd' : 'Ctrl') + '-Shift-B to show it')
 				|| (detection['firefox'] && 'right-click the tab bar and click "Bookmarks Toolbar" to show it')
 				|| '';
-				
-	window.onhashchange();
-};
+}());

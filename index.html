@@ -3,7 +3,6 @@
 	<head>
 		<title>Scheduler</title>
 		<link rel="stylesheet" href="scheduler.css" type="text/css" />
-		<script src="scheduler.js" type="text/javascript"></script>
 	</head>
 	<body>
 		<div id="controls">
@@ -135,34 +134,35 @@
 						'professors': Array.prototype.map.call(row.children[3].querySelectorAll('li'), getValue),
 						'seats': getValue(row.children[4]),
 						'status': getValue(row.children[5]),
-						'timeSlots': Array.prototype.map.call(row.children[6].querySelectorAll('li'), getValue),
+						'timeSlots': Array.prototype.map.call(row.children[6].querySelectorAll('li'), getValue).map(function (timeSlot) {
+								return timeSlot.split('.')[0];
+							}).filter(function (timeSlot, i, arr) {
+								/* remove duplicates */
+								return arr.lastIndexOf(timeSlot) == i;
+							}),
 						'credits': +getValue(row.children[7]),
 						'startDate': getValue(row.children[8]),
 						'endDate': getValue(row.children[9])
 					};
-					
-					/* To-do: should use window.postMessage */
-					var payload = JSON.stringify([
-						data.courseName,
-						data.timeSlots.map(function (timeSlot) {
-							return timeSlot.split('.')[0];
-						}).filter(function (timeSlot, i, arr) {
-							/* remove duplicates */
-							return arr.lastIndexOf(timeSlot) == i;
-						}).join(', ')
-					]);
 
 					var link = document.createElement('a');
-					link.href = __URL__ + '#' + escape(payload);
-					link.target = 'loader';
+					link.href = '#';
 					link.innerHTML = 'Schedule';
 					link.onclick = function () { 
 						this.style.color = 'black';
 						this.style.textDecoration = 'none';
 						this.innerHTML = 'section added';
 						
-						if (!loader || loader.closed)
+						if (!loader || loader.closed) {
 							loader = window.open(__URL__ + '#!v=' + __VERSION__, 'loader', 'resizable=yes, scrollbars=yes, titlebar=yes, width=1300, height=700, top=10, left=300');
+							loader.onload = function () {
+								alert('loaded');
+								loader.postMessage(JSON.stringify(data), '*');
+							};
+						} else
+							loader.postMessage(JSON.stringify(data), '*');
+							
+						return false;
 					};
 					row.children[0].insertBefore(link, row.children[0].firstChild);
 				});
@@ -181,6 +181,8 @@
 				return 'Portal doesn\'t like it when you refresh or press the back button. Are you sure you want to continue?';
 			};
 		</script>
+		
+		<script src="scheduler.js" type="text/javascript"></script>
 		
 		<script type="text/javascript">
 			addEventListener('load', function () {
