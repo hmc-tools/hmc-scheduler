@@ -327,11 +327,17 @@ function messageOnce(str) {
 	// Version check
 	if (window.location.hash.indexOf('#!v=') == 0) {
 		if (+window.location.hash.substr('#!v='.length) < VERSION)
-			alert('Your bookmarklet looks outdated! You should redrag the bookmark to the bookmarks bar.');
+			alert('Your bookmarklet looks outdated! You should redrag the bookmark to the bookmarks bar and try again.');
 		window.location.hash = '#';
 	}
 	
-	// It looks like they clicked directly on the bookmark going to Portal.
+	// Version check
+	if (!localStorage.schedulerVersion || localStorage.schedulerVersion < VERSION) {
+		localStorage.schedulerVersion = VERSION;
+		alert('Update: the checkbox next to the Generate button will toggle section numbers. Unfortunately, for it to work, you\'ll need to redrag the bookmarklet, delete all your classes, and readd them. Sorry!');
+	}
+	
+	// It looks like they clicked directly on the bookmark without going to Portal.
 	if (window.location.hash == '#!bookmarklet') {
 		if (messageOnce('search-portal'))
 			alert('Go to Portal before you click this bookmark!');
@@ -527,7 +533,16 @@ function messageOnce(str) {
 				   (detection['webkit'] && 'press ' + (detection['mac'] ? 'Cmd' : 'Ctrl') + '-Shift-B to show it')
 				|| (detection['firefox'] && 'right-click the tab bar and click "Bookmarks Toolbar" to show it')
 				|| '';
-				
+	
+	document.getElementById('button-clear').onclick = function () {
+		if (confirm('Are you sure you want to delete all the courses you\'ve added?')) {
+			save('courses', courses = []);
+			window.location.reload();
+		}
+			
+		return false;
+	};
+	
 	// Silly workaround to circumvent crossdomain policy
 	if (window.opener)
 		window.opener.postMessage('loaded', '*');
