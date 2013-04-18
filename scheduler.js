@@ -360,6 +360,24 @@ function messageOnce(str) {
 		// Display them all
 		schedulePosition = loadSchedule(schedules, 0);
 		
+		// The credit count
+		var count = courses.filter(function (course) { 
+			return course.selected;
+		}).map(function (course) {
+			if (!course.data)
+				return NaN;
+			
+			// Mudd courses are worth their full value.
+			if (course.data['courseCode'].indexOf(' HM-') != -1)
+				return course.data['credits'];
+			
+			// Other colleges' courses need to be multiplied by three.
+			return course.data['credits'] * 3;
+		}).reduce(function (a, b) {
+			return a + b;
+		}, 0);
+		document.getElementById('credit-counter').innerHTML = isNaN(count) ? '' : '(' + count.toFixed(1) + ' credits)';
+		
 		this.disabled = true;
 	};
 	
@@ -396,7 +414,10 @@ function messageOnce(str) {
 					return prof.split(',')[0];
 				}).join(', ') + '): ' + 
 				
-			data['timeSlots'].map(function (timeSlot) {
+			data['timeSlots'].filter(function (timeSlot) {
+					// Make sure they're actually of the correct format
+					return /([MTWRF]+) (\d?\d):(\d\d)\s*(AM|PM)?\s*\-\s?(\d?\d):(\d\d)\s*(AM|PM)?/gi.test(timeSlot);
+				}).map(function (timeSlot) {
 					return timeSlot.split('.')[0];
 				}).filter(function (timeSlot, i, arr) {
 					// Remove duplicates
@@ -486,4 +507,8 @@ function messageOnce(str) {
 				   (detection['webkit'] && 'press ' + (detection['mac'] ? 'Cmd' : 'Ctrl') + '-Shift-B to show it')
 				|| (detection['firefox'] && 'right-click the tab bar and click "Bookmarks Toolbar" to show it')
 				|| '';
+				
+	// Silly workaround to circumvent crossdomain policy
+	if (window.opener)
+		window.opener.postMessage('loaded', '*');
 }());

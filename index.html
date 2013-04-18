@@ -153,10 +153,7 @@
 						
 						if (!loader || loader.closed) {
 							loader = window.open(__URL__ + '#!v=' + __VERSION__, 'loader', 'resizable=yes, scrollbars=yes, titlebar=yes, width=1300, height=700, top=10, left=300');
-							loader.onload = function () {
-								alert('loaded');
-								loader.postMessage(JSON.stringify(data), '*');
-							};
+							message = JSON.stringify(data);
 						} else
 							loader.postMessage(JSON.stringify(data), '*');
 							
@@ -177,6 +174,15 @@
 			
 			window.onbeforeunload = function () {
 				return 'Portal doesn\'t like it when you refresh or press the back button. Are you sure you want to continue?';
+			};
+			
+			/* Silly workaround for no being able to set loader.onload */
+			var message = false;
+			window.onmessage = function () {
+				if (message) {
+					loader.postMessage(message, '*');
+					message = false;
+				}
 			};
 		</script>
 		
