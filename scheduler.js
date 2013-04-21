@@ -332,7 +332,7 @@ function messageOnce(str) {
 	}
 	
 	// Version check
-	if (!localStorage.schedulerVersion || localStorage.schedulerVersion < VERSION) {
+	if ((!localStorage.schedulerVersion || localStorage.schedulerVersion < VERSION) && localStorage.courses) {
 		localStorage.schedulerVersion = VERSION;
 		alert('Update: you can now show section numbers with the checkbox next to the Generate button. Unfortunately, for it to work, you\'ll need to redrag the bookmarklet, delete all your classes, and readd them. Sorry!');
 	}
