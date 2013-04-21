@@ -344,6 +344,15 @@ function messageOnce(str) {
 			
 		window.location.hash = '#';
 	}
+	
+	// Check if it's an older version...
+	window.onhashchange = function () {
+		try {
+			if (JSON.parse(unescape(window.location.hash.substr(1)))[0])
+				alert('Your bookmarklet looks outdated! You should redrag the bookmark to the bookmarks bar and try again.');
+		} catch (e) {}
+	};
+	window.onhashchange();
 
 	// Load data
 	var courses = localStorage.courses ? JSON.parse(localStorage.courses) : [];
