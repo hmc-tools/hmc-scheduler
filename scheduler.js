@@ -241,8 +241,8 @@ function generateSchedules(courses) {
 						'course': course,
 						'section': section,
 						'weekday': 'MTWRF'.indexOf(day), 
-						'from': timeToHours(+h1, +m1, (pm1 || pm2) == 'PM'),
-						'to': timeToHours(+h2, +m2, (pm2 || pm1) == 'PM'),
+						'from': timeToHours(+h1, +m1, (pm1 || pm2).toUpperCase() == 'PM'),
+						'to': timeToHours(+h2, +m2, (pm2 || pm1).toUpperCase() == 'PM'),
 					});
 				});
 			});
@@ -334,7 +334,7 @@ function messageOnce(str) {
 	// Version check
 	if ((!localStorage.schedulerVersion || localStorage.schedulerVersion < VERSION) && localStorage.courses) {
 		localStorage.schedulerVersion = VERSION;
-		alert('Update: you can now show section numbers with the checkbox next to the Generate button. Unfortunately, for it to work, you\'ll need to redrag the bookmarklet, delete all your classes, and readd them. Sorry!');
+		alert('Update: you can now show section numbers with the checkbox next to the Generate button. Unfortunately, for it to work, you\'ll need to redrag the bookmarklet, delete all your classes, and re-add them. Sorry!');
 	}
 	
 	// It looks like they clicked directly on the bookmark without going to Portal.
