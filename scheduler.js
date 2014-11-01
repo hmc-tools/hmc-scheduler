@@ -88,7 +88,8 @@ function addCourse(course, i, courses) {
 	
 	// Change colors
 	courseNode.querySelector('.c').onclick = function () {
-		courseNode.querySelector('input[type="text"]').style.backgroundColor = course.color = randomColor();
+		var color = course.color || randomColor(course.name);
+		courseNode.querySelector('input[type="text"]').style.backgroundColor = course.color = color.replace(/\d+/, function (hue) { return (+hue + 24) % 360; });
 		save('courses', courses);
 		document.getElementById('button-generate').disabled = false;
 		return false;
