@@ -3,6 +3,9 @@ var options = {
 };
 
 function randomColor(seed) {
+	if (!seed)
+		seed = '' + Math.random();
+		
 	// Use a hash function (djb2) to generate a deterministic but "random" color.
 	var hash = 5381 % 359;
 	for (var i = 0; i < seed.length; i++)
@@ -26,7 +29,7 @@ function addCourse(course, i, courses) {
 	if (course.name) courseNode.querySelector('input[type="text"]').value = course.name;
 	courseNode.querySelector('input[type="checkbox"]').checked = course.selected;
 	if (course.times) courseNode.querySelector('textarea').value = course.times;	
-	courseNode.querySelector('input[type="text"]').style.backgroundColor = randomColor(course.name);
+	courseNode.querySelector('input[type="text"]').style.backgroundColor = course.color || randomColor(course.name);
 	
 	// Collapsing and expanding
 	courseNode.querySelector('input[type="text"]').onfocus = function () {
@@ -83,6 +86,14 @@ function addCourse(course, i, courses) {
 		return false;
 	};
 	
+	// Change colors
+	courseNode.querySelector('.c').onclick = function () {
+		courseNode.querySelector('input[type="text"]').style.backgroundColor = course.color = randomColor();
+		save('courses', courses);
+		document.getElementById('button-generate').disabled = false;
+		return false;
+	};
+		
 	document.getElementById('courses').appendChild(courseNode);
 	document.getElementById('courses-container').classList.remove('empty');
 	document.getElementById('courses-container').classList.add('not-empty');
@@ -134,7 +145,7 @@ function drawSchedule(schedule) {
 	schedule.forEach(function (timeSlot) {
 		var div = document.createElement('div');
 		div.style.top = hourHeight * (timeSlot.from - beginHour) + 'px';
-		div.style.backgroundColor = randomColor(timeSlot.course.name);
+		div.style.backgroundColor = timeSlot.course.color || randomColor(timeSlot.course.name);
 		div.innerHTML = (options.showSections && timeSlot.section ? 
 				timeSlot.section.replace(/^([^(]+)\((.*)\)/, function (_, code, profs) {
 					return '<b>' + code + '</b><br />' + profs;
