@@ -2,6 +2,16 @@ var options = {
 	'showSections': false
 };
 
+function randomColor(seed) {
+	// Use a hash function (djb2) to generate a deterministic but "random" color.
+	var hash = 5381 % 359;
+	for (var i = 0; i < seed.length; i++)
+		hash = (((hash << 5) + hash) + seed.charCodeAt(i)) % 359;
+
+	return 'hsl(' + hash + ', 73%, 90%)'
+	// Even though we should use "% 360" for all possible values, using 359 makes for fewer hash collisions.
+}
+
 var openNode = false;
 var tabIndex = 0;
 function addCourse(course, i, courses) {
@@ -16,10 +26,7 @@ function addCourse(course, i, courses) {
 	if (course.name) courseNode.querySelector('input[type="text"]').value = course.name;
 	courseNode.querySelector('input[type="checkbox"]').checked = course.selected;
 	if (course.times) courseNode.querySelector('textarea').value = course.times;	
-	if (course.color) {
-		courseNode.querySelector('input[type="text"]').style.backgroundColor = course.color;
-		RandomColor.register(course.color);
-	}
+	courseNode.querySelector('input[type="text"]').style.backgroundColor = randomColor(course.name);
 	
 	// Collapsing and expanding
 	courseNode.querySelector('input[type="text"]').onfocus = function () {
@@ -76,49 +83,12 @@ function addCourse(course, i, courses) {
 		return false;
 	};
 	
-	// Change colors
-	courseNode.querySelector('.c').onclick = function () {
-		RandomColor.unregister(course.color);
-		courseNode.querySelector('input[type="text"]').style.backgroundColor = course.color = RandomColor.get();
-		save('courses', courses);
-		document.getElementById('button-generate').disabled = false;
-		return false;
-	};
-	
 	document.getElementById('courses').appendChild(courseNode);
 	document.getElementById('courses-container').classList.remove('empty');
 	document.getElementById('courses-container').classList.add('not-empty');
 	
 	document.getElementById('button-generate').disabled = false;
 }
-
-var RandomColor = (function () {
-	var used = {};
-	var colors = [];
-	for (var i = 0; i < 360; i += 24)
-		colors.push('hsl(' + i + ', 73%, 90%)');
-	colors = colors.sort(function () { return Math.random() - .5; });
-	
-	return {
-		'get': function () {
-			// Get the unused colors
-			var colorsUnused = colors.filter(function (color) { return !(color in used); });
-			if (colors.length == 0)
-				colorsUnused = colors;
-				
-			// Pick a random color
-			var color = colorsUnused[Math.floor(Math.random() * colorsUnused.length)];
-			used[color] = true;
-			return color;
-		},
-		'register': function (color) {
-			used[color] = true;
-		},
-		'unregister': function (color) {
-			delete used[color];
-		}
-	};
-}());
 
 function timeToHours(h, m, pm) {
 	return h + m / 60 + (pm && h != 12 ? 12 : 0);
@@ -164,7 +134,7 @@ function drawSchedule(schedule) {
 	schedule.forEach(function (timeSlot) {
 		var div = document.createElement('div');
 		div.style.top = hourHeight * (timeSlot.from - beginHour) + 'px';
-		div.style.backgroundColor = timeSlot.course.color;
+		div.style.backgroundColor = randomColor(timeSlot.course.name);
 		div.innerHTML = (options.showSections && timeSlot.section ? 
 				timeSlot.section.replace(/^([^(]+)\((.*)\)/, function (_, code, profs) {
 					return '<b>' + code + '</b><br />' + profs;
@@ -334,7 +304,7 @@ function messageOnce(str) {
 	// Version check
 	if ((!localStorage.schedulerVersion || localStorage.schedulerVersion < VERSION) && localStorage.courses) {
 		localStorage.schedulerVersion = VERSION;
-		alert('Update: you can now show section numbers with the checkbox next to the Generate button. Unfortunately, for it to work, you\'ll need to redrag the bookmarklet, delete all your classes, and re-add them. Sorry!');
+//		alert('Update: you can now show section numbers with the checkbox next to the Generate button. Unfortunately, for it to work, you\'ll need to redrag the bookmarklet, delete all your classes, and re-add them. Sorry!');
 	}
 	
 	// It looks like they clicked directly on the bookmark without going to Portal.
@@ -365,8 +335,7 @@ function messageOnce(str) {
 		var course = {
 			'name': '',
 			'selected': true,
-			'times': '',
-			'color': RandomColor.get()
+			'times': ''
 		};
 		courses.push(course);
 		addCourse(course, 0, courses);
@@ -472,8 +441,7 @@ function messageOnce(str) {
 				'name': name,
 				'selected': true,
 				'times': timeSlot,
-				'data': data,
-				'color': RandomColor.get()
+				'data': data
 			};
 			courses.push(course);
 			addCourse(course, 0, courses);
