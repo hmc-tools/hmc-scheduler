@@ -234,10 +234,32 @@ function VEventObject(timeBlock) {
     this.startDate = new Date(Date.parse(timeBlock.data.endDate));
     this.startDate.setDate(this.startDate.getDate() + (7 + this.weekday + 1 - this.startDate.getDay()) % 7);
     this.endDate = new Date(Date.parse(timeBlock.data.startDate));
-    this.name = timeBlock.names;
+    this.name = timeBlock.name;
     var locationRegex = /[^;]*$/;
     this.loc = 'LOCATION:' + locationRegex.exec(timeBlock.times) + '\n';
-    this.toString = function () { return '' }
+    this.toString = function () {
+		var days = ['MO', 'TU', 'WE', 'TH', 'FR'];
+		var startDateFull = dateAddHoursAndMinutes(startDate, startTime);
+		var endDateFull = dateAddHoursAndMinutes(endDate, endTime);
+		var header = 'BEGIN:VEVENT\n';
+		var footer = 'END:VEVENT\n';
+		var uid = 'UID:' + startDate + startTime + '-' + (new Date()).getTime() + '\n';
+		var dtstart = 'DTSTART:' + formatDate(startDateFull) + '\n';
+		var dtend = 'DTEND:' + formatDate(endDateFull) + '\n';
+  		var dtstamp = 'DTSTAMP:' + formatDate(new Date()) + '\n';
+		var rrule = 'RRULE:FREQ=WEEKLY;BYDAY=' + days[weekday] + ';UNTIL=' + formatDate(endDate) + '\n';
+		return header + uid + dtstart + dtend + dtend + dtstamp + loc + rrule + name + footer;
+	}
+}
+
+function dateAddHoursAndMinutes(date, fracHours)
+{
+	var hours = Math.floor(fracHours);
+	var minutes = (fracHours - hours) * 60;
+	var newDate = new Date(date);
+	newDate.setHours(hours);
+	newDate.setMinutes(minutes);
+	return newDate;
 }
 
 function buildVEvent(timeBlock, i) {
