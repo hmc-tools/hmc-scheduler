@@ -217,10 +217,45 @@ function download(filename, text) {
   document.body.removeChild(element);
 }
 
-function exportSchedule(schedule, filename)
-{
-	
+function exportSchedule(schedule, filename) {
+  var header = 'BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//HMC Scheduler//EN\n':
+  var footer = 'END:VCALENDAR\n';
 }
+
+function formatDate(date) {
+  return '' + date.getFullYear() + date.getMonth() + date.getDate() + 'T' +
+	date.getHours() + date.getMinutes() + date.getSeconds();
+}
+
+function VEventObject(args) {
+    this.weekdays = [];
+    this.start = 0.0;
+    this.end = 0.0;
+    this.name = '';
+    this.loc = '';
+    this.toString = function () { return '' }
+}
+
+function buildVEvent(timeBlock, i) {
+  var timeSlot = timeBlock.course.timeSlots[i]
+  //TODO get start date
+  var startTS = (new Date(Date.parse(timeBlock.course.data.startDate))).
+  var endTS = 
+  var endDateTS = new Date(Date.parse(timeBlock.course.data.endDate));
+  var locationRegex = /[^;]*$/;
+  var daysRegex = /^\S*/;
+  var daysMap = {'M': 'MO', 'T': 'TU', 'W': 'WE', 'R': 'TH', 'F': 'FR'};
+  var daysString = daysRegex.exec(timeSlot).split('').map( function(c) { return daysMap[c] } ).join(',')
+  var header = 'BEGIN:VEVENT\n';
+  var footer = 'END:VEVENT\n';
+  var uid = 'UID:' + startTS + '-' + (new Date()).getTime() + '\n';
+  var dtstart = 'DTSTART:' + startTS + '\n';
+  var dtend  = 'DTEND:' + endTs + '\n';
+  var dtstamp = 'DTSTAMP:' + formatDate(new Date()) + '\n';
+  var loc = 'LOCATION:' + locationRegex.exec(timeSlot) + '\n';
+  var rrule = 'RRULE:FREQ=WEEKLY;BYDAY=' + daysString + ';UNTIL=
+
+
 
 function generateSchedules(courses) {
 
