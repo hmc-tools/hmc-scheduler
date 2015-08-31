@@ -220,6 +220,15 @@ function download(filename, text) {
 function exportSchedule(schedule, filename) {
   var header = 'BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//HMC Scheduler//EN\n':
   var footer = 'END:VCALENDAR\n';
+  var result = '';
+  result += header;
+  for (timeBlock in schedule)
+  {
+	var vevent = new VEventObject(timeBlock);
+	result += vevent.toString();
+  }
+  result += footer;
+  return result;
 }
 
 function formatDate(date) {
