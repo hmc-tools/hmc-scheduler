@@ -635,7 +635,8 @@ function messageOnce(str) {
 	};
 	
 	document.getElementById('button-export').onclick = function () {
-		i	
+		var schedule = JSON.parse(JSON.stringify(schedules[schedulePosition]));
+		exportSchedule(schedule, "testing.ics");
 	};
 	// Silly workaround to circumvent crossdomain policy
 	if (window.opener)
