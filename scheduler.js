@@ -292,7 +292,7 @@ function mapCourses(schedules) {
     if (mapOfCourses[key] == undefined) {
     	mapOfCourses[key] = [timeBlock];
     } else {
-    	mapOfCourses[key].add(timeBlock);
+    	mapOfCourses[key].push(timeBlock);
     }
   }
   return mapOfCourses;
