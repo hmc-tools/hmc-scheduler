@@ -256,16 +256,7 @@ function VEventObject(timeBlocks) {
     this.endDate.setDate(this.endDate.getDate() + daysTillFirstClass);
     this.name = timeBlocks[0].course.name;
     var locationRegex = /[^;]*$/;
-    var loc = '';
-    for (i in timeBlocks[0].course.data.timeSlots) {
-        var timeSlot = timeBlocks[0].course.data.timeSlots[i];
-		if (timeSlot.split(' ')[0].indexOf("MTWRF"[this.weekday]) >= 0) {
-            //TODO lab and class on same day. Make sure times match too
-            loc = /[^;]*$/.exec(timeSlot);
-            break
-        }
-    }
-    this.loc = loc[0];
+    this.loc = timeBlocks[0].loc;
     this.toString = function () {
 		var days = ['MO', 'TU', 'WE', 'TH', 'FR'];
 		var startDateFull = dateAddHoursAndMinutes(this.startDate, this.startTime);
@@ -306,15 +297,9 @@ function generateSchedules(courses) {
 			
 			// Split it into a list of each day's time slot
 			var args = [];
-			timeSlot.replace(/([MTWRF]+) (\d?\d):(\d\d)\s*(AM|PM)?\s*\-\s?(\d?\d):(\d\d)\s*(AM|PM)([^;])?/gi, function (_, daylist, h1, m1, pm1, h2, m2, pm2, lextra) {
+			timeSlot.replace(/([MTWRF]+) (\d?\d):(\d\d)\s*(AM|PM)?\s*\-\s?(\d?\d):(\d\d)\s*(AM|PM)?;([^;]*)/gi, function (_, daylist, h1, m1, pm1, h2, m2, pm2, lextra) {
 				daylist.split('').forEach(function (day) {
-					var loc;
-					if (lextra.lastIndexOf(',') >= 0) {
-						loc = lextra.substring(0,lextra.lastIndexOf(','));
-					}
-					else {
-						loc = lextra;
-					}
+					var loc = lextra.substring(0,lextra.lastIndexOf(',')) || lextra;
 					args.push({
 						'course': course,
 						'section': section,
