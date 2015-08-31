@@ -304,11 +304,19 @@ function generateSchedules(courses) {
 			
 			// Split it into a list of each day's time slot
 			var args = [];
-			timeSlot.replace(/([MTWRF]+) (\d?\d):(\d\d)\s*(AM|PM)?\s*\-\s?(\d?\d):(\d\d)\s*(AM|PM)?/gi, function (_, daylist, h1, m1, pm1, h2, m2, pm2) {
+			timeSlot.replace(/([MTWRF]+) (\d?\d):(\d\d)\s*(AM|PM)?\s*\-\s?(\d?\d):(\d\d)\s*(AM|PM)([^;])?/gi, function (_, daylist, h1, m1, pm1, h2, m2, pm2, lextra) {
 				daylist.split('').forEach(function (day) {
+					var loc;
+					if (lextra.lastIndexOf(',') >= 0) {
+						loc = lextra.substring(0,lextra.lastIndexOf(','));
+					}
+					else {
+						loc = lextra;
+					}
 					args.push({
 						'course': course,
 						'section': section,
+						'loc': loc,
 						'weekday': 'MTWRF'.indexOf(day), 
 						'from': timeToHours(+h1, +m1, (pm1 || pm2).toUpperCase() == 'PM'),
 						'to': timeToHours(+h2, +m2, (pm2 || pm1).toUpperCase() == 'PM'),
