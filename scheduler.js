@@ -121,6 +121,7 @@ function loadSchedule(schedules, i) {
 	document.getElementById('page-number').innerHTML = i + 1;
 	document.getElementById('page-count').innerHTML = schedules.length;
 	document.getElementById('button-save').disabled = schedules.length == 0;
+	document.getElementById('button-export').disabled = schedules.length == 0;
 	document.getElementById('button-print').disabled = schedules.length == 0;
 	
 	document.getElementById('page-counter').classList.add(schedules.length ? 'not-empty' : 'empty');
@@ -217,14 +218,14 @@ function download(filename, text) {
   document.body.removeChild(element);
 }
 
-function exportSchedule(schedule, filename) {
-  var header = 'BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//HMC Scheduler//EN\n':
+function exportSchedule(mapOfCourses) {
+  var header = 'BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//HMC Scheduler//EN\n';
   var footer = 'END:VCALENDAR\n';
   var result = '';
   result += header;
-  for (timeBlock in schedule)
+  for (i in mapOfCourses)
   {
-	var vevent = new VEventObject(timeBlock);
+	var vevent = new VEventObject(mapOfCourses[i]);
 	result += vevent.toString();
   }
   result += footer;
@@ -232,15 +233,16 @@ function exportSchedule(schedule, filename) {
 }
 
 function formatDate(date) {
-  return '' + date.getFullYear() + date.getMonth() + date.getDate() + 'T' +
-	date.getHours() + date.getMinutes() + date.getSeconds();
+	var isostr = date.toISOString();
+	var dotIndex = isostr.indexOf('.');
+	return isostr.substring(0, dotIndex).replace(/-/g, '').replace(/:/g, '');
 }
 
 function VEventObject(timeBlock) {
     this.weekday = timeBlock.weekday;
     this.startTime = timeBlock.from;
     this.endTime = timeBlock.to;
-    this.startDate = new Date(Date.parse(timeBlock.data.endDate));
+    this.startDate = new Date(Date.parse(timeBlock.course.data.startDate));
 
     // Update the start date of the class to the first day where there is
     // actually a class (according to the MTWRF flags)
@@ -248,30 +250,34 @@ function VEventObject(timeBlock) {
     var daysTillFirstClass = (7 + day - this.startDate.getDay()) % 7;
     this.startDate.setDate(this.startDate.getDate() + daysTillFirstClass);
 
-    this.endDate = new Date(Date.parse(timeBlock.data.startDate));
-    this.name = timeBlock.name;
+    this.endDate = new Date(Date.parse(timeBlock.course.data.endDate));
+    this.endDate.setDate(this.endDate.getDate() + daysTillFirstClass);
+    this.name = timeBlock.course.name;
     var locationRegex = /[^;]*$/;
     var loc = '';
-    for (timeSlot in timeBlock.data.timeSlots) {
-        if (timeSlot.split(' ')[0].indexOf("MTWRF"[this.weekday]) >= 0) {
+    for (i in timeBlock.course.data.timeSlots) {
+        var timeSlot = timeBlock.course.data.timeSlots[i];
+		if (timeSlot.split(' ')[0].indexOf("MTWRF"[this.weekday]) >= 0) {
             //TODO lab and class on same day. Make sure times match too
             loc = /[^;]*$/.exec(timeSlot);
             break
         }
     }
-    this.loc = 'LOCATION:' + loc + '\n';
+    this.loc = loc[0];
     this.toString = function () {
 		var days = ['MO', 'TU', 'WE', 'TH', 'FR'];
-		var startDateFull = dateAddHoursAndMinutes(startDate, startTime);
-		var endDateFull = dateAddHoursAndMinutes(endDate, endTime);
+		var startDateFull = dateAddHoursAndMinutes(this.startDate, this.startTime);
+		var endDateFull = dateAddHoursAndMinutes(this.startDate, this.endTime); //no "overnight" classes
 		var header = 'BEGIN:VEVENT\n';
 		var footer = 'END:VEVENT\n';
-		var uid = 'UID:' + startDate + startTime + '-' + (new Date()).getTime() + '\n';
+		var uid = 'UID:' + this.startDate + this.startTime + '-' + (new Date()).getTime() + '\n';
 		var dtstart = 'DTSTART:' + formatDate(startDateFull) + '\n';
 		var dtend = 'DTEND:' + formatDate(endDateFull) + '\n';
   		var dtstamp = 'DTSTAMP:' + formatDate(new Date()) + '\n';
-		var rrule = 'RRULE:FREQ=WEEKLY;BYDAY=' + days[weekday] + ';UNTIL=' + formatDate(endDate) + '\n';
-		return header + uid + dtstart + dtend + dtend + dtstamp + loc + rrule + name + footer;
+		var place = 'LOCATION:' + this.loc.replace(/,/g, '\\,').replace(/\n/g, '') + '\n';
+		var rrule = 'RRULE:FREQ=WEEKLY;BYDAY=' + days[this.weekday] + ';UNTIL=' + formatDate(this.endDate) + '\n';
+		var title = 'SUMMARY:' + this.name.replace(/,/g, '\\,') + '\n';
+		return header + uid + dtstart + dtend + dtstamp + place + rrule + title + footer;
 	}
 }
 
@@ -285,38 +291,18 @@ function dateAddHoursAndMinutes(date, fracHours)
 	return newDate;
 }
 
-function buildVEvent(timeBlock, i) {
-  var timeSlot = timeBlock.course.timeSlots[i]
-  //TODO get start date
-  var startTS = (new Date(Date.parse(timeBlock.course.data.startDate))).
-  var endTS = '';
-  var endDateTS = new Date(Date.parse(timeBlock.course.data.endDate));
-  var locationRegex = /[^;]*$/;
-  var daysRegex = /^\S*/;
-  var daysMap = {'M': 'MO', 'T': 'TU', 'W': 'WE', 'R': 'TH', 'F': 'FR'};
-  var daysString = daysRegex.exec(timeSlot).split('').map( function(c) { return daysMap[c] } ).join(',')
-  var header = 'BEGIN:VEVENT\n';
-  var footer = 'END:VEVENT\n';
-  var uid = 'UID:' + startTS + '-' + (new Date()).getTime() + '\n';
-  var dtstart = 'DTSTART:' + startTS + '\n';
-  var dtend  = 'DTEND:' + endTs + '\n';
-  var dtstamp = 'DTSTAMP:' + formatDate(new Date()) + '\n';
-  var loc = 'LOCATION:' + locationRegex.exec(timeSlot) + '\n';
-  var rrule = 'RRULE:FREQ=WEEKLY;BYDAY=' + daysString + ';UNTIL=';
-}
-
 function mapCourses(schedules) {
-  var mapCourses = new Object();
-  for (int i = 0; i < schedules.length; i++) {
+  var mapOfCourses = new Object();
+  for (var i = 0; i < schedules.length; i++) {
     var timeBlock = schedules[i];
-    var name = timeBlock.course.name;
-    if (mapCourses[name] == undefined) {
-    	mapCourses[name] = [timeBlock];
+    var key = timeBlock.course.name + timeBlock.loc;
+    if (mapOfCourses[key] == undefined) {
+    	mapOfCourses[key] = [timeBlock];
     } else {
-    	mapCourses[name].add(timeBlock);
+    	mapOfCourses[key].add(timeBlock);
     }
   }
-  return mapCourses;
+  return mapOfCourses;
 }
 
 function generateSchedules(courses) {
@@ -332,11 +318,19 @@ function generateSchedules(courses) {
 			
 			// Split it into a list of each day's time slot
 			var args = [];
-			timeSlot.replace(/([MTWRF]+) (\d?\d):(\d\d)\s*(AM|PM)?\s*\-\s?(\d?\d):(\d\d)\s*(AM|PM)?/gi, function (_, daylist, h1, m1, pm1, h2, m2, pm2) {
+			timeSlot.replace(/([MTWRF]+) (\d?\d):(\d\d)\s*(AM|PM)?\s*\-\s?(\d?\d):(\d\d)\s*(AM|PM)([^;])?/gi, function (_, daylist, h1, m1, pm1, h2, m2, pm2, lextra) {
 				daylist.split('').forEach(function (day) {
+					var loc;
+					if (lextra.lastIndexOf(',') >= 0) {
+						loc = lextra.substring(0,lextra.lastIndexOf(','));
+					}
+					else {
+						loc = lextra;
+					}
 					args.push({
 						'course': course,
 						'section': section,
+						'loc': loc,
 						'weekday': 'MTWRF'.indexOf(day), 
 						'from': timeToHours(+h1, +m1, (pm1 || pm2).toUpperCase() == 'PM'),
 						'to': timeToHours(+h2, +m2, (pm2 || pm1).toUpperCase() == 'PM'),
@@ -649,11 +643,9 @@ function messageOnce(str) {
 	
 	document.getElementById('button-export').onclick = function () {
 		var mapOfCourses = mapCourses(schedules[schedulePosition]);
-		for (int i = 0; i < mapOfCourses.length; i++) {
-		   
-		//var schedule = JSON.parse(JSON.stringify(schedules[schedulePosition]));
 		
-		exportSchedule(schedule, "testing.ics");
+		var scheduleText = exportSchedule(mapOfCourses); 
+		download("testing.ics", scheduleText);
 	};
 	// Silly workaround to circumvent crossdomain policy
 	if (window.opener)
