@@ -204,6 +204,24 @@ function addSavedSchedule(name, schedule, savedSchedules) {
 	document.getElementById('saved-schedules').appendChild(div);
 }
 
+function download(filename, text) {
+  var element = document.createElement('a');
+  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+  element.setAttribute('download', filename);
+
+  element.style.display = 'none';
+  document.body.appendChild(element);
+
+  element.click();
+
+  document.body.removeChild(element);
+}
+
+function exportSchedule(schedule, filename)
+{
+	
+}
+
 function generateSchedules(courses) {
 
 	// Parse all the courses from text form into a list of courses, each a list of time slots
