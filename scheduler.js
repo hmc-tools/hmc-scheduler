@@ -611,6 +611,9 @@ function messageOnce(str) {
 		return false;
 	};
 	
+	document.getElementById('button-export').onclick = function () {
+		i	
+	};
 	// Silly workaround to circumvent crossdomain policy
 	if (window.opener)
 		window.opener.postMessage('loaded', '*');
