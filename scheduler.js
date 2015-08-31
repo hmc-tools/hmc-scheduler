@@ -305,6 +305,19 @@ function buildVEvent(timeBlock, i) {
   var rrule = 'RRULE:FREQ=WEEKLY;BYDAY=' + daysString + ';UNTIL=';
 }
 
+function mapCourses(schedules) {
+  var mapCourses = new Object();
+  for (int i = 0; i < schedules.length; i++) {
+    var timeBlock = schedules[i];
+    var name = timeBlock.course.name;
+    if (mapCourses[name] == undefined) {
+    	mapCourses[name] = [timeBlock];
+    } else {
+    	mapCourses[name].add(timeBlock);
+    }
+  }
+  return mapCourses;
+}
 
 function generateSchedules(courses) {
 
@@ -635,7 +648,11 @@ function messageOnce(str) {
 	};
 	
 	document.getElementById('button-export').onclick = function () {
-		var schedule = JSON.parse(JSON.stringify(schedules[schedulePosition]));
+		var mapOfCourses = mapCourses(schedules[schedulePosition]);
+		for (int i = 0; i < mapOfCourses.length; i++) {
+		   
+		//var schedule = JSON.parse(JSON.stringify(schedules[schedulePosition]));
+		
 		exportSchedule(schedule, "testing.ics");
 	};
 	// Silly workaround to circumvent crossdomain policy
