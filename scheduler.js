@@ -131,7 +131,7 @@ function loadSchedule(schedules, i) {
 }
 
 function drawSchedule(schedule) {
-	
+	console.log(schedule);
 	var days = Array.prototype.slice.call(document.querySelectorAll('.day'));
 	var beginHour = 8 - 0.5; // Starts at 8am
 	var hourHeight = document.querySelector('#schedule li').offsetHeight;
@@ -227,12 +227,16 @@ function formatDate(date) {
 	date.getHours() + date.getMinutes() + date.getSeconds();
 }
 
-function VEventObject(args) {
-    this.weekdays = [];
-    this.start = 0.0;
-    this.end = 0.0;
-    this.name = '';
-    this.loc = '';
+function VEventObject(timeBlock) {
+    this.weekday = timeBlock.weekday;
+    this.startTime = timeBlock.from;
+    this.endTime = timeBlock.to;
+    this.startDate = new Date(Date.parse(timeBlock.data.endDate));
+    this.startDate.setDate(this.startDate.getDate() + (7 + this.weekday + 1 - this.startDate.getDay()) % 7);
+    this.endDate = new Date(Date.parse(timeBlock.data.startDate));
+    this.name = timeBlock.names;
+    var locationRegex = /[^;]*$/;
+    this.loc = 'LOCATION:' + locationRegex.exec(timeBlock.times) + '\n';
     this.toString = function () { return '' }
 }
 
@@ -240,7 +244,7 @@ function buildVEvent(timeBlock, i) {
   var timeSlot = timeBlock.course.timeSlots[i]
   //TODO get start date
   var startTS = (new Date(Date.parse(timeBlock.course.data.startDate))).
-  var endTS = 
+  var endTS = '';
   var endDateTS = new Date(Date.parse(timeBlock.course.data.endDate));
   var locationRegex = /[^;]*$/;
   var daysRegex = /^\S*/;
@@ -253,8 +257,8 @@ function buildVEvent(timeBlock, i) {
   var dtend  = 'DTEND:' + endTs + '\n';
   var dtstamp = 'DTSTAMP:' + formatDate(new Date()) + '\n';
   var loc = 'LOCATION:' + locationRegex.exec(timeSlot) + '\n';
-  var rrule = 'RRULE:FREQ=WEEKLY;BYDAY=' + daysString + ';UNTIL=
-
+  var rrule = 'RRULE:FREQ=WEEKLY;BYDAY=' + daysString + ';UNTIL=';
+}
 
 
 function generateSchedules(courses) {
