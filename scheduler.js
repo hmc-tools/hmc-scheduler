@@ -238,25 +238,27 @@ function formatDate(date) {
 	return isostr.substring(0, dotIndex).replace(/-/g, '').replace(/:/g, '');
 }
 
-function VEventObject(timeBlock) {
-    this.weekday = timeBlock.weekday;
-    this.startTime = timeBlock.from;
-    this.endTime = timeBlock.to;
-    this.startDate = new Date(Date.parse(timeBlock.course.data.startDate));
+function VEventObject(timeBlocks) {
+    this.weekdays = [];
+	for (i in timeBlocks)
+		this.weekdays.push(timeBlocks[i].weekday);
+    this.startTime = timeBlocks[0].from;
+    this.endTime = timeBlocks[0].to;
+    this.startDate = new Date(Date.parse(timeBlocks[0].course.data.startDate));
 
     // Update the start date of the class to the first day where there is
     // actually a class (according to the MTWRF flags)
-    var day = this.weekday + 1
+    var day = this.weekdays[0] + 1
     var daysTillFirstClass = (7 + day - this.startDate.getDay()) % 7;
     this.startDate.setDate(this.startDate.getDate() + daysTillFirstClass);
 
-    this.endDate = new Date(Date.parse(timeBlock.course.data.endDate));
+    this.endDate = new Date(Date.parse(timeBlocks[0].course.data.endDate));
     this.endDate.setDate(this.endDate.getDate() + daysTillFirstClass);
-    this.name = timeBlock.course.name;
+    this.name = timeBlocks[0].course.name;
     var locationRegex = /[^;]*$/;
     var loc = '';
-    for (i in timeBlock.course.data.timeSlots) {
-        var timeSlot = timeBlock.course.data.timeSlots[i];
+    for (i in timeBlocks[0].course.data.timeSlots) {
+        var timeSlot = timeBlocks[0].course.data.timeSlots[i];
 		if (timeSlot.split(' ')[0].indexOf("MTWRF"[this.weekday]) >= 0) {
             //TODO lab and class on same day. Make sure times match too
             loc = /[^;]*$/.exec(timeSlot);
@@ -275,7 +277,7 @@ function VEventObject(timeBlock) {
 		var dtend = 'DTEND:' + formatDate(endDateFull) + '\n';
   		var dtstamp = 'DTSTAMP:' + formatDate(new Date()) + '\n';
 		var place = 'LOCATION:' + this.loc.replace(/,/g, '\\,').replace(/\n/g, '') + '\n';
-		var rrule = 'RRULE:FREQ=WEEKLY;BYDAY=' + days[this.weekday] + ';UNTIL=' + formatDate(this.endDate) + '\n';
+		var rrule = 'RRULE:FREQ=WEEKLY;BYDAY=' + this.weekdays.map(function(day) { return days[day]; }).join(',') + ';UNTIL=' + formatDate(this.endDate) + '\n';
 		var title = 'SUMMARY:' + this.name.replace(/,/g, '\\,') + '\n';
 		return header + uid + dtstart + dtend + dtstamp + place + rrule + title + footer;
 	}
