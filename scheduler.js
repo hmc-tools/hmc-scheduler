@@ -220,6 +220,15 @@ function download(filename, text) {
 function exportSchedule(schedule, filename) {
   var header = 'BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//HMC Scheduler//EN\n':
   var footer = 'END:VCALENDAR\n';
+  var result = '';
+  result += header;
+  for (timeBlock in schedule)
+  {
+	var vevent = new VEventObject(timeBlock);
+	result += vevent.toString();
+  }
+  result += footer;
+  return result;
 }
 
 function formatDate(date) {
@@ -232,11 +241,25 @@ function VEventObject(timeBlock) {
     this.startTime = timeBlock.from;
     this.endTime = timeBlock.to;
     this.startDate = new Date(Date.parse(timeBlock.data.endDate));
-    this.startDate.setDate(this.startDate.getDate() + (7 + this.weekday + 1 - this.startDate.getDay()) % 7);
+
+    // Update the start date of the class to the first day where there is
+    // actually a class (according to the MTWRF flags)
+    var day = this.weekday + 1
+    var daysTillFirstClass = (7 + day - this.startDate.getDay()) % 7;
+    this.startDate.setDate(this.startDate.getDate() + daysTillFirstClass);
+
     this.endDate = new Date(Date.parse(timeBlock.data.startDate));
     this.name = timeBlock.name;
     var locationRegex = /[^;]*$/;
-    this.loc = 'LOCATION:' + locationRegex.exec(timeBlock.times) + '\n';
+    var loc = '';
+    for (timeSlot in timeBlock.data.timeSlots) {
+        if (timeSlot.split(' ')[0].indexOf("MTWRF"[this.weekday]) >= 0) {
+            //TODO lab and class on same day. Make sure times match too
+            loc = /[^;]*$/.exec(timeSlot);
+            break
+        }
+    }
+    this.loc = 'LOCATION:' + loc + '\n';
     this.toString = function () {
 		var days = ['MO', 'TU', 'WE', 'TH', 'FR'];
 		var startDateFull = dateAddHoursAndMinutes(startDate, startTime);
