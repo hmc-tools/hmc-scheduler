@@ -248,12 +248,15 @@ function VEventObject(timeBlocks) {
 
     // Update the start date of the class to the first day where there is
     // actually a class (according to the MTWRF flags)
-    var day = this.weekdays[0] + 1
-    var daysTillFirstClass = (7 + day - this.startDate.getDay()) % 7;
+    var startDay = this.startDate.getDay();
+    var daysTillClasses = this.weekdays.map( function(weekday) {
+      day = weekday + 1;
+      return (7 + day - startDay) % 7;
+    });
+    var daysTillFirstClass = Math.min.apply(null, daysTillClasses);
     this.startDate.setDate(this.startDate.getDate() + daysTillFirstClass);
 
     this.endDate = new Date(Date.parse(timeBlocks[0].course.data.endDate));
-    this.endDate.setDate(this.endDate.getDate() + daysTillFirstClass);
     this.name = timeBlocks[0].course.name;
     var locationRegex = /[^;]*$/;
     this.loc = timeBlocks[0].loc;
