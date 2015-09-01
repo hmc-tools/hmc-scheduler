@@ -235,7 +235,7 @@ function exportSchedule(mapOfCourses) {
 function formatDate(date) {
 	var isostr = date.toISOString();
 	var dotIndex = isostr.indexOf('.');
-	return isostr.substring(0, dotIndex).replace(/-/g, '').replace(/:/g, '');
+	return isostr.substring(0, dotIndex).replace(/-/g, '').replace(/:/g, '') + 'Z';
 }
 
 function VEventObject(timeBlocks) {
@@ -326,7 +326,7 @@ function generateSchedules(courses) {
 			});
 			return args;
 			
-		});	
+		});
 	});
 	
 	// Generate all possible combinations
