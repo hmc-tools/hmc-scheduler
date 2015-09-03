@@ -132,7 +132,6 @@ function loadSchedule(schedules, i) {
 }
 
 function drawSchedule(schedule) {
-	console.log(schedule);
 	var days = Array.prototype.slice.call(document.querySelectorAll('.day'));
 	var beginHour = 8 - 0.5; // Starts at 8am
 	var hourHeight = document.querySelector('#schedule li').offsetHeight;
@@ -302,10 +301,8 @@ function mapCourses(schedules) {
 }
 
 function generateSchedules(courses) {
-
 	// Parse all the courses from text form into a list of courses, each a list of time slots
 	var classes = courses.filter(function (course) { return course.selected && course.times; }).map(function (course) {
-	
 		// Parse every line separately
 		return course.times.split('\n').map(function (timeSlot) {
 		
@@ -314,14 +311,13 @@ function generateSchedules(courses) {
 			
 			// Split it into a list of each day's time slot
 			var args = [];
-			timeSlot.replace(/([MTWRF]+) (\d?\d):(\d\d)\s*(AM|PM)?\s*\-\s?(\d?\d):(\d\d)\s*(AM|PM)?;([^;]*)/gi, function (_, daylist, h1, m1, pm1, h2, m2, pm2, lextra) {
+			timeSlot.replace(/([MTWRF]+) (\d?\d):(\d\d)\s*(AM|PM)?\s*\-\s?(\d?\d):(\d\d)\s*(AM|PM)?;([^;]*?)(?=$|, \w+ \d?\d:\d{2})/gi, function (_, daylist, h1, m1, pm1, h2, m2, pm2, loc) {
 				daylist.split('').forEach(function (day) {
-					var loc = lextra.substring(0,lextra.lastIndexOf(',')) || lextra;
 					args.push({
 						'course': course,
 						'section': section,
-						'loc': loc,
-						'weekday': 'MTWRF'.indexOf(day), 
+						'loc': loc.trim().replace(/\s*/,' ').replace(/^\s/, ''),
+						'weekday': 'MTWRF'.indexOf(day),
 						'from': timeToHours(+h1, +m1, (pm1 || pm2).toUpperCase() == 'PM'),
 						'to': timeToHours(+h2, +m2, (pm2 || pm1).toUpperCase() == 'PM'),
 					});
@@ -531,8 +527,6 @@ function messageOnce(str) {
 			data['timeSlots'].filter(function (timeSlot) {
 					// Make sure they're actually of the correct format
 					return /([MTWRF]+) (\d?\d):(\d\d)\s*(AM|PM)?\s*\-\s?(\d?\d):(\d\d)\s*(AM|PM)?/gi.test(timeSlot);
-				}).map(function (timeSlot) {
-					return timeSlot.split('.')[0];
 				}).filter(function (timeSlot, i, arr) {
 					// Remove duplicates
 					return arr.lastIndexOf(timeSlot) == i;
@@ -635,7 +629,7 @@ function messageOnce(str) {
 		var mapOfCourses = mapCourses(schedules[schedulePosition]);
 		
 		var scheduleText = exportSchedule(mapOfCourses); 
-		download("testing.ics", scheduleText);
+		download("schedule.ics", scheduleText);
 	};
 	// Silly workaround to circumvent crossdomain policy
 	if (window.opener)
