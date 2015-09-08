@@ -205,61 +205,57 @@ function addSavedSchedule(name, schedule, savedSchedules) {
 }
 
 function download(filename, text) {
-  var element = document.createElement('a');
-  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-  element.setAttribute('download', filename);
+	var a = document.createElement('a');
+	a.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(text);
+	a.download = filename;
 
-  element.style.display = 'none';
-  document.body.appendChild(element);
-
-  element.click();
-
-  document.body.removeChild(element);
+	a.style.display = 'none';
+	document.body.appendChild(a);
+	a.click();
+	document.body.removeChild(a);
 }
 
 function exportSchedule(mapOfCourses) {
-  var header = 'BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//HMC Scheduler//EN\n';
-  var footer = 'END:VCALENDAR\n';
-  var result = '';
-  result += header;
-  for (i in mapOfCourses)
-  {
-	var vevent = new VEventObject(mapOfCourses[i]);
-	result += vevent.toString();
-  }
-  result += footer;
-  return result;
+	var header = 'BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//HMC Scheduler//EN\n';
+	var footer = 'END:VCALENDAR\n';
+	var result = '';
+	result += header;
+	for (i in mapOfCourses)	{
+		var vevent = new VEventObject(mapOfCourses[i]);
+		result += vevent.toString();
+	}
+	result += footer;
+	return result;
 }
 
 function formatDate(date) {
 	var isostr = date.toISOString();
 	var dotIndex = isostr.indexOf('.');
-	return isostr.substring(0, dotIndex).replace(/-/g, '').replace(/:/g, '') + 'Z';
+	return isostr.substring(0, dotIndex).replace(/[-:]/g, '') + 'Z';
 }
 
 function VEventObject(timeBlocks) {
-    this.weekdays = [];
+	this.weekdays = [];
 	for (i in timeBlocks)
 		this.weekdays.push(timeBlocks[i].weekday);
-    this.startTime = timeBlocks[0].from;
-    this.endTime = timeBlocks[0].to;
-    this.startDate = new Date(Date.parse(timeBlocks[0].course.data.startDate));
+	this.startTime = timeBlocks[0].from;
+	this.endTime = timeBlocks[0].to;
+	this.startDate = new Date(Date.parse(timeBlocks[0].course.data.startDate));
 
-    // Update the start date of the class to the first day where there is
-    // actually a class (according to the MTWRF flags)
-    var startDay = this.startDate.getDay();
-    var daysTillClasses = this.weekdays.map( function(weekday) {
-      day = weekday + 1;
-      return (7 + day - startDay) % 7;
-    });
-    var daysTillFirstClass = Math.min.apply(null, daysTillClasses);
-    this.startDate.setDate(this.startDate.getDate() + daysTillFirstClass);
+	// Update the start date of the class to the first day where there is
+	// actually a class (according to the MTWRF flags)
+	var startDay = this.startDate.getDay();
+	var daysTillClasses = this.weekdays.map(function (weekday) {
+		var day = weekday + 1;
+		return (7 + day - startDay) % 7;
+	});
+	var daysTillFirstClass = Math.min.apply(null, daysTillClasses);
+	this.startDate.setDate(this.startDate.getDate() + daysTillFirstClass);
 
-    this.endDate = new Date(Date.parse(timeBlocks[0].course.data.endDate));
-    this.name = timeBlocks[0].course.name;
-    var locationRegex = /[^;]*$/;
-    this.loc = timeBlocks[0].loc;
-    this.toString = function () {
+	this.endDate = new Date(Date.parse(timeBlocks[0].course.data.endDate));
+	this.name = timeBlocks[0].course.name;
+	this.loc = timeBlocks[0].loc;
+	this.toString = function () {
 		var days = ['MO', 'TU', 'WE', 'TH', 'FR'];
 		var startDateFull = dateAddHoursAndMinutes(this.startDate, this.startTime);
 		var endDateFull = dateAddHoursAndMinutes(this.startDate, this.endTime); //no "overnight" classes
@@ -268,16 +264,15 @@ function VEventObject(timeBlocks) {
 		var uid = 'UID:' + this.startDate + this.startTime + '-' + (new Date()).getTime() + '\n';
 		var dtstart = 'DTSTART:' + formatDate(startDateFull) + '\n';
 		var dtend = 'DTEND:' + formatDate(endDateFull) + '\n';
-  		var dtstamp = 'DTSTAMP:' + formatDate(new Date()) + '\n';
+		var dtstamp = 'DTSTAMP:' + formatDate(new Date()) + '\n';
 		var place = 'LOCATION:' + this.loc.replace(/,/g, '\\,').replace(/\n/g, '') + '\n';
 		var rrule = 'RRULE:FREQ=WEEKLY;BYDAY=' + this.weekdays.map(function(day) { return days[day]; }).join(',') + ';UNTIL=' + formatDate(this.endDate) + '\n';
 		var title = 'SUMMARY:' + this.name.replace(/,/g, '\\,') + '\n';
 		return header + uid + dtstart + dtend + dtstamp + place + rrule + title + footer;
-	}
+	};
 }
 
-function dateAddHoursAndMinutes(date, fracHours)
-{
+function dateAddHoursAndMinutes(date, fracHours) {
 	var hours = Math.floor(fracHours);
 	var minutes = (fracHours - hours) * 60;
 	var newDate = new Date(date);
@@ -287,17 +282,15 @@ function dateAddHoursAndMinutes(date, fracHours)
 }
 
 function mapCourses(schedules) {
-  var mapOfCourses = new Object();
-  for (var i = 0; i < schedules.length; i++) {
-    var timeBlock = schedules[i];
-    var key = timeBlock.course.name + timeBlock.loc;
-    if (mapOfCourses[key] == undefined) {
-    	mapOfCourses[key] = [timeBlock];
-    } else {
-    	mapOfCourses[key].push(timeBlock);
-    }
-  }
-  return mapOfCourses;
+	var mapOfCourses = {};
+	for (var i = 0; i < schedules.length; i++) {
+		var timeBlock = schedules[i];
+		var key = timeBlock.course.name + timeBlock.loc;
+		if (!mapOfCourses[key])
+			mapOfCourses[key] = [];
+		mapOfCourses[key].push(timeBlock);
+	}
+	return mapOfCourses;
 }
 
 function generateSchedules(courses) {
@@ -311,12 +304,13 @@ function generateSchedules(courses) {
 			
 			// Split it into a list of each day's time slot
 			var args = [];
+			// The lookahead at the end is because meeting times are delimited by commas (oops), but the location may contain commas.
 			timeSlot.replace(/([MTWRF]+) (\d?\d):(\d\d)\s*(AM|PM)?\s*\-\s?(\d?\d):(\d\d)\s*(AM|PM)?;([^;]*?)(?=$|, \w+ \d?\d:\d{2})/gi, function (_, daylist, h1, m1, pm1, h2, m2, pm2, loc) {
 				daylist.split('').forEach(function (day) {
 					args.push({
 						'course': course,
 						'section': section,
-						'loc': loc.trim().replace(/\s*/,' ').replace(/^\s/, ''),
+						'loc': loc.trim(),
 						'weekday': 'MTWRF'.indexOf(day),
 						'from': timeToHours(+h1, +m1, (pm1 || pm2).toUpperCase() == 'PM'),
 						'to': timeToHours(+h2, +m2, (pm2 || pm1).toUpperCase() == 'PM'),
