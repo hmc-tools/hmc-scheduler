@@ -228,10 +228,24 @@ function exportSchedule(mapOfCourses) {
 	return result;
 }
 
+function print0pad(n, pad) {
+	s = '' + n;
+	while (s.length() < pad) s = '0' + s;
+	return s
+}
+
+function formatDateTime(date) {
+	return print0pad(date.getYear(),4) +
+	print0pad(date.getMonth(),2) +
+	print0pad(date.getDay(),2) +
+	'T'
+	print0pad(date.getHours(),2) +
+	print0pad(date.getMinutes(),2) +
+	print0pad(date.getSeconds(),2) +
+}
+
 function formatDate(date) {
-	var isostr = date.toISOString();
-	var dotIndex = isostr.indexOf('.');
-	return isostr.substring(0, dotIndex).replace(/[-:]/g, '') + 'Z';
+	return formatDateTime(date)
 }
 
 function VEventObject(timeBlocks) {
@@ -262,8 +276,8 @@ function VEventObject(timeBlocks) {
 		var header = 'BEGIN:VEVENT\n';
 		var footer = 'END:VEVENT\n';
 		var uid = 'UID:' + this.startDate + this.startTime + '-' + (new Date()).getTime() + '\n';
-		var dtstart = 'DTSTART:' + formatDate(startDateFull) + '\n';
-		var dtend = 'DTEND:' + formatDate(endDateFull) + '\n';
+		var dtstart = 'DTSTART;TZID:California-Los_Angeles:' + formatDate(startDateFull) + '\n';
+		var dtend = 'DTEND;TZID:California-Los_Angeles:' + formatDate(endDateFull) + '\n';
 		var dtstamp = 'DTSTAMP:' + formatDate(new Date()) + '\n';
 		var place = 'LOCATION:' + this.loc.replace(/,/g, '\\,').replace(/\n/g, '') + '\n';
 		var rrule = 'RRULE:FREQ=WEEKLY;BYDAY=' + this.weekdays.map(function(day) { return days[day]; }).join(',') + ';UNTIL=' + formatDate(this.endDate) + '\n';
