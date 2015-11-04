@@ -228,24 +228,23 @@ function exportSchedule(mapOfCourses) {
 	return result;
 }
 
-function print0pad(n, pad) {
-	s = '' + n;
-	while (s.length < pad) s = '0' + s;
-	return s
-}
-
-function formatDateTime(date) {
-	return print0pad(date.getFullYear(),4) +
-	print0pad(date.getMonth() + 1,2) +
-	print0pad(date.getDate(),2) +
-	'T' +
-	print0pad(date.getHours(),2) +
-	print0pad(date.getMinutes(),2) +
-	print0pad(date.getSeconds(),2);
+function padZero(n, pad) {
+	var s = '' + n;
+	while (s.length < pad) 
+		s = '0' + s;
+	return s;
 }
 
 function formatDate(date) {
-	return formatDateTime(date)
+	return [
+		padZero(date.getFullYear(), 4),
+		padZero(date.getMonth() + 1, 2),
+		padZero(date.getDate(), 2),
+		'T',
+		padZero(date.getHours(), 2),
+		padZero(date.getMinutes(), 2),
+		padZero(date.getSeconds(), 2)
+	].join('');
 }
 
 function VEventObject(timeBlocks) {
