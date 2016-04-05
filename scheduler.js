@@ -638,6 +638,54 @@ function messageOnce(str) {
 		var scheduleText = exportSchedule(mapOfCourses); 
 		download("schedule.ics", scheduleText);
 	};
+	document.getElementById('button-prologify').onclick = function () {
+		function prologify(arg) {
+			if (Array.isArray(arg))
+				return '[' + arg.map(prologify) + ']';
+			if (typeof arg == 'string')
+				return "'" + arg + "'";
+			return arg;	
+		}
+
+		var clauses = [];
+		courses
+			.filter(function (course) { return course.times; })
+			.map(function (course) {
+				
+				// Parse every line separately
+				var sections = course.times.split('\n').map(function (timeSlot) {
+				
+					// Extract the section info from the string, if it's there.
+					var section = timeSlot.indexOf(': ') > -1 ? timeSlot.split(': ')[0] : '';
+					var crs, sec, profs;
+					section.replace(/^(.{4}[^\s]*)\s+(.{5})\s+\(([^)]*)\)/, function (_, crs_, sec_, profs_) {
+						crs = crs_;
+						sec = sec_;
+						profs = profs_;
+					});
+					
+					// Split it into a list of each day's time slot
+					var slots = [];
+					// The lookahead at the end is because meeting times are delimited by commas (oops), but the location may contain commas.
+					timeSlot.replace(/([MTWRF]+) (\d?\d):(\d\d)\s*(AM|PM)?\s*\-\s?(\d?\d):(\d\d)\s*(AM|PM)?;([^;]*?)(?=$|, \w+ \d?\d:\d{2})/gi, function (_, daylist, h1, m1, pm1, h2, m2, pm2, loc) {
+						daylist.split('').forEach(function (day) {
+							slots.push([
+								'MTWRFSU'.indexOf(day),
+								timeToHours(+h1, +m1, (pm1 || pm2).toUpperCase() == 'PM'),
+								timeToHours(+h2, +m2, (pm2 || pm1).toUpperCase() == 'PM'),
+								loc.trim().replace(/\s+/g, ' ')
+							]);
+						});
+					});
+					
+					clauses.push(prologify([crs, sec, course.data.credits, course.data.startDate, course.data.endDate, profs.split(/,\s*/g), slots]));
+				});
+			});
+			
+		var prolog = clauses.join('.\n') + '.';
+		download('courses.data', prolog);
+	};
+	
 	// Silly workaround to circumvent crossdomain policy
 	if (window.opener)
 		window.opener.postMessage('loaded', '*');
