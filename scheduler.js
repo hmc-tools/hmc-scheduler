@@ -298,7 +298,7 @@ function mapCourses(schedules) {
 	var mapOfCourses = {};
 	for (var i = 0; i < schedules.length; i++) {
 		var timeBlock = schedules[i];
-		var key = timeBlock.course.name + timeBlock.loc;
+		var key = timeBlock.course.name + timeBlock.loc + (' ' + timeBlock.from + ' ' + timeBlock.to);
 		if (!mapOfCourses[key])
 			mapOfCourses[key] = [];
 		mapOfCourses[key].push(timeBlock);
