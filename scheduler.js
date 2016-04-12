@@ -646,6 +646,10 @@ function messageOnce(str) {
 				return "'" + arg + "'";
 			return arg;	
 		}
+		
+		function dateToArray(dateStr) {
+			return dateStr.split('/').map(Number);
+		}
 
 		var clauses = [];
 		courses
@@ -678,8 +682,10 @@ function messageOnce(str) {
 						});
 					});
 					
-					clauses.push(prologify([crs, sec, course.data.credits, course.data.startDate, course.data.endDate, profs.split(/,\s*/g), slots]));
+					return [crs, sec, course.data.credits, dateToArray(course.data.startDate), dateToArray(course.data.endDate), profs.split(/,\s*/g), slots];
 				});
+				
+				clauses.push(prologify(sections));
 			});
 			
 		var prolog = clauses.join('.\n') + '.';
