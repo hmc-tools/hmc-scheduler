@@ -657,7 +657,7 @@ function messageOnce(str) {
 			.map(function (course) {
 				
 				// Parse every line separately
-				var sections = course.times.split('\n').map(function (timeSlot) {
+				course.times.split('\n').map(function (timeSlot) {
 				
 					// Extract the section info from the string, if it's there.
 					var section = timeSlot.indexOf(': ') > -1 ? timeSlot.split(': ')[0] : '';
@@ -682,14 +682,11 @@ function messageOnce(str) {
 						});
 					});
 					
-					return [crs, sec, course.data.credits, dateToArray(course.data.startDate), dateToArray(course.data.endDate), profs.split(/,\s*/g), slots];
+					clauses.push([crs, sec, course.data.credits, dateToArray(course.data.startDate), dateToArray(course.data.endDate), profs.split(/,\s*/g), slots]);
 				});
-				
-				clauses.push(prologify(sections));
 			});
 			
-		var prolog = clauses.join('.\n') + '.';
-		download('courses.data', prolog);
+		download('courses.data', '[' + clauses.map(prologify).join(',\n') + '].');
 	};
 	
 	// Silly workaround to circumvent crossdomain policy
