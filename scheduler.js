@@ -374,15 +374,30 @@ function generateSchedules(courses) {
 		
 			var todaySlots = timeSlots.filter(function (timeSlot) { return timeSlot.weekday == day; });
 			for (var t = 0; t < 24; t += 0.1)				
-				if (todaySlots.filter(function (timeSlot) {
+				if (unique_classes(todaySlots.filter(function (timeSlot) {
 							return timeSlot.from < t && t < timeSlot.to;
-						}).length > 1)
+						})).length > 1)
 					return false;
 			
 		}
 		
 		return true;
 	});
+}
+
+// This function takes a list of courses and reduces it - removing any 
+// two timeSlots that have the same course name
+function unique_classes (timeSlots) {
+	slots = []
+	alreadyAdded = {}
+	for (slotIdx in timeSlots) {
+		var timeSlot = timeSlots[slotIdx];
+		if (!(timeSlot.name in alreadyAdded)) {
+			slots.push(timeSlot);
+			alreadyAdded[timeSlot.name] = true;
+		}
+	}
+	return slots;
 }
 
 // Store stuff
