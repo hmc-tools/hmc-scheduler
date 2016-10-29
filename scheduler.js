@@ -6,7 +6,7 @@ var options = {
 function randomColor(seed) {
   if (!seed)
     seed = '' + Math.random();
-    
+
   // Use a hash function (djb2) to generate a deterministic but "random" color.
   var hash = 5381 % 359;
   for (var i = 0; i < seed.length; i++)
@@ -29,9 +29,9 @@ function addCourse(course, i, courses) {
   // Fill in the values
   if (course.name) courseNode.querySelector('input[type="text"]').value = course.name;
   courseNode.querySelector('input[type="checkbox"]').checked = course.selected;
-  if (course.times) courseNode.querySelector('textarea').value = course.times;  
+  if (course.times) courseNode.querySelector('textarea').value = course.times;
   courseNode.querySelector('input[type="text"]').style.backgroundColor = course.color || randomColor(course.name);
-  
+
   // Collapsing and expanding
   courseNode.querySelector('input[type="text"]').onfocus = function () {
     if (openNode && openNode != courseNode)
@@ -41,23 +41,23 @@ function addCourse(course, i, courses) {
   };
   /*courseNode.querySelector('input[type="text"]').ondblclick = function () {
     openNode.classList.add('hidden');
-    openNode = false;  
+    openNode = false;
   };*/
-  
+
   // Data updating
   courseNode.querySelector('input[type="text"]').onchange = function () {
-    course.name = this.value; 
-    
+    course.name = this.value;
+
     save('courses', courses);
     document.getElementById('button-generate').disabled = false;
   };
-  courseNode.querySelector('textarea').onchange = function () { 
+  courseNode.querySelector('textarea').onchange = function () {
     course.times = this.value.trim();
-    
+
     // Add a trailing line break to facilitate copy/paste
     if (this.value[this.value.length - 1] != '\n')
       this.value += '\n';
-      
+
     save('courses', courses);
     document.getElementById('button-generate').disabled = false;
   };
@@ -65,12 +65,12 @@ function addCourse(course, i, courses) {
     course.selected = !!this.checked;
     save('courses', courses);
     document.getElementById('button-generate').disabled = false;
-  };  
-  
+  };
+
   // Tabbing
   courseNode.querySelector('input[type="text"]').setAttribute('tabindex', ++tabIndex);
   courseNode.querySelector('textarea').setAttribute('tabindex', ++tabIndex);
-  
+
   // Deleting
   courseNode.querySelector('.x').onclick = function () {
     if (confirm('Are you sure you want to delete ' + (course.name || 'this class') + '?')) {
@@ -78,7 +78,7 @@ function addCourse(course, i, courses) {
       courseNode.parentNode.removeChild(courseNode);
       save('courses', courses);
       document.getElementById('button-generate').disabled = false;
-      
+
       if (courses.length == 0) {
         document.getElementById('courses-container').classList.add('empty');
         document.getElementById('courses-container').classList.remove('not-empty');
@@ -86,7 +86,7 @@ function addCourse(course, i, courses) {
     }
     return false;
   };
-  
+
   // Change colors
   courseNode.querySelector('.c').onclick = function () {
     var color = course.color || randomColor(course.name);
@@ -95,11 +95,11 @@ function addCourse(course, i, courses) {
     document.getElementById('button-generate').disabled = false;
     return false;
   };
-    
+
   document.getElementById('courses').appendChild(courseNode);
   document.getElementById('courses-container').classList.remove('empty');
   document.getElementById('courses-container').classList.add('not-empty');
-  
+
   document.getElementById('button-generate').disabled = false;
 }
 
@@ -115,7 +115,7 @@ function formatHours(hours) {
 function loadSchedule(schedules, i) {
 
   i = Math.min(schedules.length - 1, Math.max(i, 0));
-  
+
   // Some UI
   document.getElementById('button-left').disabled = i <= 0;
   document.getElementById('button-right').disabled = i + 1 >= schedules.length;
@@ -124,10 +124,10 @@ function loadSchedule(schedules, i) {
   document.getElementById('button-save').disabled = schedules.length == 0;
   document.getElementById('button-export').disabled = schedules.length == 0;
   document.getElementById('button-print').disabled = schedules.length == 0;
-  
+
   document.getElementById('page-counter').classList.add(schedules.length ? 'not-empty' : 'empty');
   document.getElementById('page-counter').classList.remove(schedules.length ? 'empty' : 'not-empty');
-  
+
   drawSchedule(schedules[i] || []);
   return i;
 }
@@ -136,38 +136,38 @@ function drawSchedule(schedule) {
   var days = Array.prototype.slice.call(document.querySelectorAll('.day'));
   var beginHour = 8 - 0.5; // Starts at 8am
   var hourHeight = document.querySelector('#schedule li').offsetHeight;
-  
+
   // Clear the schedule
   days.forEach(function (day) {
     while (day.firstChild)
       day.removeChild(day.firstChild);
   });
-  
+
   // Add each time slot
   schedule.forEach(function (timeSlot) {
     var div = document.createElement('div');
     div.style.top = hourHeight * (timeSlot.from - beginHour) + 'px';
     div.style.backgroundColor = timeSlot.course.color || randomColor(timeSlot.course.name);
-    div.innerHTML = (options.showSections && timeSlot.section ? 
+    div.innerHTML = (options.showSections && timeSlot.section ?
         timeSlot.section.replace(/^([^(]+)\((.*)\)/, function (_, code, profs) {
           return '<b>' + code + '</b><br />' + profs;
-        }) 
-        : '<b>' + timeSlot.course.name + '</b>') + 
+        })
+        : '<b>' + timeSlot.course.name + '</b>') +
       '<br />' + formatHours(timeSlot.from) + ' - ' + formatHours(timeSlot.to);
-    
+
     days[timeSlot.weekday].appendChild(div);
-    
+
     // Vertically center
     var supposedHeight = (timeSlot.to - timeSlot.from) * hourHeight;
     var paddingHeight = (supposedHeight - div.offsetHeight) / 2;
     div.style.padding = paddingHeight + 'px 0';
-    div.style.height = (supposedHeight - paddingHeight * 2) + 'px';      
+    div.style.height = (supposedHeight - paddingHeight * 2) + 'px';
   });
 }
 
 function addSavedSchedule(name, schedule, savedSchedules) {
   var div = document.createElement('div');
-  
+
   var scheduleLink = document.createElement('a');
   scheduleLink.href = '#';
   scheduleLink.onclick = function () {
@@ -176,7 +176,7 @@ function addSavedSchedule(name, schedule, savedSchedules) {
     return false;
   };
   scheduleLink.appendChild(document.createTextNode(name));
-  
+
   var removeLink = document.createElement('a');
   removeLink.href = '#';
   removeLink.className = 'x';
@@ -184,22 +184,22 @@ function addSavedSchedule(name, schedule, savedSchedules) {
     if (confirm('Are you sure you want to delete this saved schedule?')) {
       div.parentNode.removeChild(div);
       delete savedSchedules[name];
-      
+
       if (document.getElementById('saved-schedules').children.length == 0) {
         document.getElementById('saved-schedules-container').classList.add('empty');
         document.getElementById('saved-schedules-container').classList.remove('not-empty');
       }
-      
+
       save('savedSchedules', savedSchedules);
     }
     return false;
   };
   removeLink.appendChild(document.createTextNode('x'));
-  
+
   div.appendChild(scheduleLink);
   div.appendChild(document.createTextNode(' '));
   div.appendChild(removeLink);
-  
+
   document.getElementById('saved-schedules-container').classList.remove('empty');
   document.getElementById('saved-schedules-container').classList.add('not-empty');
   document.getElementById('saved-schedules').appendChild(div);
@@ -231,7 +231,7 @@ function exportSchedule(mapOfCourses) {
 
 function padZero(n, pad) {
   var s = '' + n;
-  while (s.length < pad) 
+  while (s.length < pad)
     s = '0' + s;
   return s;
 }
@@ -312,10 +312,10 @@ function generateSchedules(courses) {
   var classes = courses.filter(function (course) { return course.selected && course.times; }).map(function (course) {
     // Parse every line separately
     return course.times.split('\n').map(function (timeSlot) {
-    
+
       // Extract the section info from the string, if it's there.
       var section = timeSlot.indexOf(': ') > -1 ? timeSlot.split(': ')[0] : '';
-      
+
       // Split it into a list of each day's time slot
       var args = [];
       // The lookahead at the end is because meeting times are delimited by commas (oops), but the location may contain commas.
@@ -332,20 +332,20 @@ function generateSchedules(courses) {
         });
       });
       return args;
-      
+
     });
   });
-  
+
   // Generate all possible combinations
   var combos = [];
   var state = classes.map(function () { return 0; }); // Array of the same length
   while (true) {
-  
+
     // Add this possibility
     combos.push(classes.map(function (course, i) {
       return course[state[i]];
     }));
-    
+
     // Increment state
     var incremented = false;
     for (var i = 0; i < classes.length; i++) {
@@ -356,7 +356,7 @@ function generateSchedules(courses) {
       } else
         state[i] = 0;
     }
-    
+
     // We're done.
     if (!incremented)
       break;
@@ -371,7 +371,7 @@ function generateSchedules(courses) {
   return options.allowConflicts ? concatted : concatted.filter(function (timeSlots) {
     // Loop over every six minute interval and make sure no two classes occupy it
     for (var day = 0; day < 5; day++) {
-    
+
       var todaySlots = timeSlots.filter(function (timeSlot) { return timeSlot.weekday == day; });
       for (var t = 0; t < 24; t += 0.1) {
         var classesThen = todaySlots.filter(function (timeSlot) {
@@ -383,12 +383,12 @@ function generateSchedules(courses) {
         }
       }
     }
-    
+
     return true;
   });
 }
 
-// This function takes a list of courses and reduces it - removing any 
+// This function takes a list of courses and reduces it - removing any
 // two timeSlots that have the same course name
 function unique_classes (timeSlots) {
   slots = []
@@ -411,14 +411,14 @@ function save(type, arr) {
     if (!confirm('It looks like the data has been modified from another window. Do you want to overwrite those changes? If not, refresh this page to update its data.')) {
       return;
     }
-    
+
   lastModified = localStorage.lastModified = Date.now();
   localStorage[type] = JSON.stringify(arr);
 }
 function messageOnce(str) {
   if (localStorage['message_' + str])
     return false;
-    
+
   localStorage['message_' + str] = true;
   return true;
 }
@@ -432,21 +432,21 @@ function messageOnce(str) {
       alert('Your bookmarklet looks outdated! You should redrag the bookmark to the bookmarks bar and try again.');
     window.location.hash = '#';
   }
-  
+
   // Version check
   if ((!localStorage.schedulerVersion || localStorage.schedulerVersion < VERSION) && localStorage.courses) {
     localStorage.schedulerVersion = VERSION;
 //    alert('Update: you can now show section numbers with the checkbox next to the Generate button. Unfortunately, for it to work, you\'ll need to redrag the bookmarklet, delete all your classes, and re-add them. Sorry!');
   }
-  
+
   // It looks like they clicked directly on the bookmark without going to Portal.
   if (window.location.hash == '#!bookmarklet') {
     if (messageOnce('search-portal'))
       alert('Go to Portal before you click this bookmark!');
-      
+
     window.location.hash = '#';
   }
-  
+
   // Check if it's an older version...
   window.onhashchange = function () {
     try {
@@ -460,10 +460,10 @@ function messageOnce(str) {
   var courses = localStorage.courses ? JSON.parse(localStorage.courses) : [];
   var savedSchedules = localStorage.savedSchedules ? JSON.parse(localStorage.savedSchedules) : {};
   var schedules = [];
-  var schedulePosition = 0;  
-  
+  var schedulePosition = 0;
+
   // Attach events
-  document.getElementById('button-add').onclick = function () { 
+  document.getElementById('button-add').onclick = function () {
     var course = {
       'name': '',
       'selected': true,
@@ -473,7 +473,7 @@ function messageOnce(str) {
     addCourse(course, 0, courses);
     save('courses', courses);
   };
-  
+
   document.getElementById('button-save').onclick = function () {
     var name = prompt('What would you like to call this schedule?', '');
     if (name) {
@@ -482,40 +482,40 @@ function messageOnce(str) {
       save('savedSchedules', savedSchedules);
     }
   };
-  
+
   document.getElementById('button-generate').onclick = function () {
     schedules = generateSchedules(courses);
-    
+
     // Display them all
     schedulePosition = loadSchedule(schedules, 0);
-    
+
     // The credit count
-    var count = courses.filter(function (course) { 
+    var count = courses.filter(function (course) {
       return course.selected;
     }).map(function (course) {
       if (!course.data)
         return NaN;
-      
+
       // Mudd courses are worth their full value.
       if (course.data['courseCode'].indexOf(' HM-') != -1)
         return course.data['credits'];
-      
+
       // Other colleges' courses need to be multiplied by three.
       return course.data['credits'] * 3;
     }).reduce(function (a, b) {
       return a + b;
     }, 0);
     document.getElementById('credit-counter').innerHTML = isNaN(count) ? '' : '(' + count.toFixed(1) + ' credits)';
-    
+
     this.disabled = true;
   };
-  
+
   document.getElementById('button-sections').checked = options.showSections = localStorage.showSections;
   document.getElementById('button-sections').onclick = function () {
     localStorage.showSections = options.showSections = this.checked;
     document.getElementById('button-generate').onclick();
   };
-  
+
   document.getElementById('button-conflicts').checked = options.allowConflicts = localStorage.allowConflicts;
   document.getElementById('button-conflicts').onclick = function () {
     localStorage.allowConflicts = options.allowConflicts = this.checked;
@@ -534,7 +534,7 @@ function messageOnce(str) {
     else if (e.keyCode == 37)
       document.getElementById('button-left').onclick();
   };
-  
+
   // Messages from the bookmarklet
   window.onmessage = function (e) {
     // Extract information from the message
@@ -543,18 +543,18 @@ function messageOnce(str) {
     } catch (e) {
       return;
     }
-    
+
     var name = data['courseName'];
-    
+
     // Build the timeSlot string.
-    var timeSlot = 
+    var timeSlot =
       data['courseCode'].replace(/\s+/g, ' ') + ' (' +
-      
+
       data['professors'].map(function (prof) {
           // Only last names to save space.
           return prof.split(',')[0];
-        }).join(', ') + '): ' + 
-        
+        }).join(', ') + '): ' +
+
       data['timeSlots'].filter(function (timeSlot) {
           // Make sure they're actually of the correct format
           return /([MTWRF]+) (\d?\d):(\d\d)\s*(AM|PM)?\s*\-\s?(\d?\d):(\d\d)\s*(AM|PM)?/gi.test(timeSlot);
@@ -562,7 +562,7 @@ function messageOnce(str) {
           // Remove duplicates
           return arr.lastIndexOf(timeSlot) == i;
         }).join(', ');
-    
+
     // See if the course being passed in is already in the course list
     var course = false;
     for (var i = 0; i < courses.length; i++)
@@ -570,7 +570,7 @@ function messageOnce(str) {
         course = courses[i];
         break;
       }
-  
+
     // Not there yet? Make it.
     if (!course) {
       course = {
@@ -582,7 +582,7 @@ function messageOnce(str) {
       courses.push(course);
       addCourse(course, 0, courses);
     }
-    
+
     // Add this time to the list if it's not already there
     else {
       course.data = data;
@@ -593,21 +593,21 @@ function messageOnce(str) {
       }
       course._node.querySelector('input[type="text"]').onfocus();
     }
-    
+
     save('courses', courses);
     document.getElementById('button-generate').onclick();
   };
-  
+
   // Display all the courses
   if (courses.length) {
     courses.forEach(addCourse);
     document.getElementById('button-generate').onclick();
   }
-  
+
   // Display all the saved schedules
   for (var name in savedSchedules)
     addSavedSchedule(name, savedSchedules[name], savedSchedules);
-  
+
   // Sigh, browser detection
   var detection = {
     'chrome': !!window.chrome,
@@ -615,17 +615,17 @@ function messageOnce(str) {
     'firefox': navigator.userAgent.toLowerCase().indexOf('firefox') > -1,
     'mac': navigator.userAgent.toLowerCase().indexOf('mac os') > -1
   };
-  
+
   // Firefox printing is ugly
   if (detection['firefox'])
     document.getElementById('button-print').style.display = 'none';
-  
+
   document.getElementById('button-print').onclick = function () {
     if (detection['chrome'] && messageOnce('print-tip'))
       alert('Pro-tip: Chrome has an option on the Print dialog to disable Headers and Footers, which makes for a prettier schedule!');
     window.print();
   };
-  
+
   // Make the bookmarklet
   document.getElementById('bookmarklet').onclick = function () {
     alert('Drag this link to your bookmarks bar. (If you don\'t see the bookmarks bar, '
@@ -636,30 +636,30 @@ function messageOnce(str) {
       ) + '.) Then, go to Portal and click the Scheduler bookmarklet!');
     return false;
   };
-  document.getElementById('bookmarklet').href = 'javascript:' + 
+  document.getElementById('bookmarklet').href = 'javascript:' +
       escape('(function(__URL__,__VERSION__){'
         // Replace spaces and /* comments */
         + document.querySelector('script[type="text/x-js-bookmarklet"]').innerHTML.replace(/(\s+|\/\*[\S\s]*?\*\/)/g, ' ')
         + '}("' + window.location.toString().split('#')[0] + '", ' + VERSION + '));');
-        
+
   document.getElementById('bookmark-helper').title =
            (detection['webkit'] && 'press ' + (detection['mac'] ? 'Cmd' : 'Ctrl') + '-Shift-B to show it')
         || (detection['firefox'] && 'right-click the tab bar and click "Bookmarks Toolbar" to show it')
         || '';
-  
+
   document.getElementById('button-clear').onclick = function () {
     if (confirm('Are you sure you want to delete all the courses you\'ve added?')) {
       save('courses', courses = []);
       window.location.reload();
     }
-      
+
     return false;
   };
-  
+
   document.getElementById('button-export').onclick = function () {
     var mapOfCourses = mapCourses(schedules[schedulePosition]);
-    
-    var scheduleText = exportSchedule(mapOfCourses); 
+
+    var scheduleText = exportSchedule(mapOfCourses);
     download("schedule.ics", scheduleText);
   };
   // Silly workaround to circumvent crossdomain policy
