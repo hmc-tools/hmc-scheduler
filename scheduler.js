@@ -497,6 +497,7 @@ function messageOnce(str) {
         return NaN;
 
       // Mudd courses are worth their full value.
+      if ((course.data['courseCode'].indexOf(' HM-') != -1) || (course.data['courseCode'].indexOf('HM-') != -1))
         return course.data['credits'];
 
       // Other colleges' courses need to be multiplied by three.
