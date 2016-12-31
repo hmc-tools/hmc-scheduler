@@ -35,7 +35,7 @@ function addCourse(course, i, courses) {
 
   // Add and style review links
   if (course.data && course.data['courseCode']) // Replace spaces with _ and trim off section
-    courseNode.querySelector('a.r').href = "http://claremontreview.com/courses/" + course.data['courseCode'].replace(/\s/g, '_').slice(0, -3);
+    courseNode.querySelector('a.r').href = "http://claremontreview.com/courses/" + course.data['courseCode'].replace(/(\s)+/g, '_').slice(0, -3);
   courseNode.querySelector('#course-review').style.backgroundColor = courseNode.querySelector('input[type="text"]').style.backgroundColor;
   if (options.showReviewLinks) courseNode.querySelector('#course-review').style.display = "block";
   else courseNode.querySelector('input[type="text"]').classList.remove('withReview');
@@ -546,7 +546,7 @@ function messageOnce(str) {
         courseReviewNodes[i].style.display = "none";
       }
     }
-    
+
     localStorage.showReviewLinks = options.showReviewLinks = this.checked;
     document.getElementById('button-generate').onclick();
   };
