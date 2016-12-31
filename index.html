@@ -6,19 +6,19 @@
 	</head>
 	<body>
 		<div id="controls">
-			<h1>Scheduler 
+			<h1>Scheduler
 				<span id="page-counter" class="not-empty">
 					<span id="pages">(<span id="page-number">1</span> of <span id="page-count">1</span>)</span>
 					<span id="pages-not-possible">(no schedules possible)</span>
 				</span>
-				<button id="button-right" disabled="disabled" title="(you can also use your arrow keys)">&gt;</button> 
+				<button id="button-right" disabled="disabled" title="(you can also use your arrow keys)">&gt;</button>
 				<button id="button-left" disabled="disabled" title="(you can also use your arrow keys)">&lt;</button>
 			</h1>
-			
+
 			<div class="text">
 				Here's a tool to help you arrange the classes you want to take. Give it all the sections of the classes you want, and it'll tell you all compatible permutations. Here's how to use it:
 				<ol>
-					<li>Drag this <a href="#" id="bookmarklet">Scheduler</a> bookmarklet to your <a id="bookmark-helper">bookmarks bar</a> 
+					<li>Drag this <a href="#" id="bookmarklet">Scheduler</a> bookmarklet to your <a id="bookmark-helper">bookmarks bar</a>
 						<span style="font-size: 0.8em">(you need to drag it &mdash; just bookmarking this page will not work!)</span>
 					</li>
 					<li>Go to Portal and click the Scheduler bookmarklet</li>
@@ -26,14 +26,14 @@
 					<li>Navigate possible schedules using the arrows above!</li>
 				</ol>
 			</div>
-			
-			<h1>Courses 
+
+			<h1>Courses
 				<span id="credit-counter"></span>
 			</h1>
-                                <label class="check-label">Allow Conflicts<input id="button-conflicts" type="checkbox" title="Section numbers?" /></label>
-                                <label class="check-label">Show Sections<input id="button-sections" type="checkbox" title="Section numbers?" /></label>
-				<button id="button-add">+</button>
-				<button id="button-generate" disabled="disabled">Generate</button>
+      <label class="check-label">Allow Conflicts<input id="button-conflicts" type="checkbox" /></label>
+      <label class="check-label">Show Sections<input id="button-sections" type="checkbox" title="Section numbers?" /></label>
+			<button id="button-add">+</button>
+			<button id="button-generate" disabled="disabled">Generate</button>
 			<div id="courses-container">
 				<div id="courses-filler" class="text">Click the add button or use the bookmarklet above to get started!</div>
 				<div id="courses">
@@ -50,7 +50,7 @@
 					</div>
 				</div>
 			</div>
-			
+
 			<h1>Starred Schedules
 				<button id="button-save" disabled="disabled" title="Star">&#9733;</button>
 				<button id="button-print" disabled="disabled" title="Print">Print</button>
@@ -60,7 +60,7 @@
 				<div id="saved-schedules-filler">Generate some schedules and star the ones you like!</div>
 				<div id="saved-schedules"></div>
 			</div>
-			
+
 			<h1>Notes</h1>
 			<div class="text">
 				<ul>
@@ -70,7 +70,7 @@
 				Bugs or suggestions? <a href="mailto:aozdemir@hmc.edu">Email me</a> or <a href="https://github.com/hmc-tools/hmc-scheduler" target="_blank">fork it on GitHub</a>!
 			</div>
 		</div>
-	
+
 		<table id="schedule" border="1" cellspacing="3" cellpadding="1">
 			<tr>
 				<th></th>
@@ -106,7 +106,7 @@
 				<td><div class="day"></div></td>
 			</tr>
 		</table>
-		
+
 		<!-- This code is to be run on Portal pages. All multiple spaces and /* comments */ will be replaced with a single space.
 			 Be careful not to use // line comments, as new lines will be replaced with spaces! -->
 		<script type="text/x-js-bookmarklet">
@@ -119,14 +119,14 @@
 				window.location = __URL__ + '#!bookmarklet';
 				return;
 			}
-			
+
 			var loader = false;
-			
+
 			/* Clear this page and replace it with a full-page frame */
 			while (document.body.firstChild)
 				document.body.removeChild(document.body.firstChild);
 			document.body.parentNode.style.height = document.body.style.height = '100%';
-			
+
 			var frame = document.createElement('iframe');
 			frame.src = '/ICS/Course_Registration/';
 			frame.style.position = 'fixed';
@@ -134,9 +134,9 @@
 			frame.style.top = frame.bottom = frame.style.border = 0;
 			frame.onload = function () {
 				var document = frame.contentWindow.document;
-				
+
 				/* Add the "schedule" links */
-				Array.prototype.filter.call(document.querySelectorAll('.groupedGrid tr:not(.subItem)'), function (node) { 
+				Array.prototype.filter.call(document.querySelectorAll('.groupedGrid tr:not(.subItem)'), function (node) {
 					return node.children.length == 10 && node.children[0].nodeName == 'TD';
 				}).forEach(function (row) {
 					var data = {
@@ -154,11 +154,11 @@
 					var link = document.createElement('a');
 					link.href = '#';
 					link.innerHTML = 'Schedule';
-					link.onclick = function () { 
+					link.onclick = function () {
 						this.style.color = 'black';
 						this.style.textDecoration = 'none';
 						this.innerHTML = 'section added';
-						
+
 						if (!loader || loader.closed) {
 							loader = window.open(__URL__ + '#!v=' + __VERSION__, 'loader', 'resizable=yes, scrollbars=yes, titlebar=yes, width=1300, height=700, top=10, left=300');
 
@@ -171,31 +171,31 @@
 							}, false);
 						} else
 							loader.postMessage(JSON.stringify(data), '*');
-							
+
 						return false;
 					};
 					row.children[0].insertBefore(link, row.children[0].firstChild);
 				});
-				
+
 				/* Give some indication that we're modifying the page */
 				document.querySelector('a[title="Course Registration"]').innerHTML += ' + Scheduler';
 			};
 			document.body.appendChild(frame);
-			
+
 			/* Show a help message if they haven't seen it before. */
 			if ((localStorage.helpMessage || 0) < 1) {
 				localStorage.helpMessage = 1;
 				alert('Search for some classes, and you\'ll see a "schedule" link next to each result. Add every section of a class you\'re interested in, and then you can generate all possible schedules!');
 			}
-			
+
 			window.onbeforeunload = function () {
 				return 'Portal doesn\'t like it when you refresh or press the back button. Are you sure you want to continue?';
 			};
-			
+
 		</script>
-		
+
 		<script src="scheduler.js?v=3" type="text/javascript"></script>
-		
+
 		<script type="text/javascript">
 			addEventListener('load', function () {
 				window._gstc_lt = +new Date;
