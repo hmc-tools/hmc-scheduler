@@ -1,6 +1,7 @@
 var options = {
   'showSections': false,
-  'allowConflicts': false
+  'allowConflicts': false,
+  'showReviewLinks': false
 };
 
 function randomColor(seed) {
@@ -31,6 +32,13 @@ function addCourse(course, i, courses) {
   courseNode.querySelector('input[type="checkbox"]').checked = course.selected;
   if (course.times) courseNode.querySelector('textarea').value = course.times;
   courseNode.querySelector('input[type="text"]').style.backgroundColor = course.color || randomColor(course.name);
+
+  // Add and style review links
+  if (course.data && course.data['courseCode']) // Replace spaces with _ and trim off section
+    courseNode.querySelector('a.r').href = "http://claremontreview.com/courses/" + course.data['courseCode'].replace(/\s/g, '_').slice(0, -3);
+  courseNode.querySelector('#course-review').style.backgroundColor = courseNode.querySelector('input[type="text"]').style.backgroundColor;
+  if (options.showReviewLinks) courseNode.querySelector('#course-review').style.display = "block";
+  else courseNode.querySelector('input[type="text"]').classList.remove('withReview');
 
   // Collapsing and expanding
   courseNode.querySelector('input[type="text"]').onfocus = function () {
@@ -519,6 +527,27 @@ function messageOnce(str) {
   document.getElementById('button-conflicts').checked = options.allowConflicts = localStorage.allowConflicts;
   document.getElementById('button-conflicts').onclick = function () {
     localStorage.allowConflicts = options.allowConflicts = this.checked;
+    document.getElementById('button-generate').onclick();
+  };
+
+  document.getElementById('button-reviews').checked = options.showReviewLinks = localStorage.showReviewLinks;
+  document.getElementById('button-reviews').onclick = function () {
+    // Display/Hide Cr links
+    var courseNameNodes = document.querySelectorAll('#course-template input[type="text"]');
+    var courseReviewNodes = document.querySelectorAll('#course-template #course-review');
+    if (this.checked) {
+      for (var i = 1; i < courseNameNodes.length; i++) { // start from 1 as 0 is template
+        courseNameNodes[i].classList.add('withReview');
+        courseReviewNodes[i].style.display = "block";
+      }
+    } else {
+      for (var i = 1; i < courseNameNodes.length; i++) { // start from 1 as 0 is template
+        courseNameNodes[i].classList.remove('withReview');
+        courseReviewNodes[i].style.display = "none";
+      }
+    }
+    
+    localStorage.showReviewLinks = options.showReviewLinks = this.checked;
     document.getElementById('button-generate').onclick();
   };
 
