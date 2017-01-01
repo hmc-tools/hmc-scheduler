@@ -518,19 +518,19 @@ function messageOnce(str) {
     this.disabled = true;
   };
 
-  document.getElementById('button-sections').checked = options.showSections = localStorage.showSections;
+  document.getElementById('button-sections').checked = options.showSections = (localStorage.showSections === 'true');
   document.getElementById('button-sections').onclick = function () {
     localStorage.showSections = options.showSections = this.checked;
     document.getElementById('button-generate').onclick();
   };
 
-  document.getElementById('button-conflicts').checked = options.allowConflicts = localStorage.allowConflicts;
+  document.getElementById('button-conflicts').checked = options.allowConflicts = (localStorage.allowConflicts === 'true');
   document.getElementById('button-conflicts').onclick = function () {
     localStorage.allowConflicts = options.allowConflicts = this.checked;
     document.getElementById('button-generate').onclick();
   };
 
-  document.getElementById('button-reviews').checked = options.showReviewLinks = localStorage.showReviewLinks;
+  document.getElementById('button-reviews').checked = options.showReviewLinks = (localStorage.showReviewLinks === 'true');
   document.getElementById('button-reviews').onclick = function () {
     // Display/Hide Cr links
     var courseNameNodes = document.querySelectorAll('#course-template input[type="text"]');
