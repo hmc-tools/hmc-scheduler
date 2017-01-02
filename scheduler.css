@@ -32,7 +32,7 @@ table ol {
 }
 
 table li {
-	padding: 1.7em 0.25em;	
+	padding: 1.7em 0.25em;
 }
 
 th {
@@ -109,11 +109,11 @@ td {
 	float: right;
 	width: 92%;
 }
-.course input[type="text"], .course textarea {
+.course input[type="text"], .course textarea, .course #course-review {
 	width: 98%;
 	font-family: inherit;
 	padding: 3px;
-	border: 1px solid #999;	
+	border: 1px solid #999;
 	float: right;
 }
 .course input[type="text"] {
@@ -131,12 +131,28 @@ td {
 .course a {
 	display: block;
 }
+.course #course-review {
+	width: 5%;
+	display: none;
+	float: right;
+	padding: 2px 4px;
+}
+a.r {
+	text-align: center;
+}
+.course input[type="text"].withReview {
+	float: left;
+	width: 90%;
+}
 
 .course.hidden textarea, .course.hidden a {
 	display: none;
 }
 .course.hidden {
 	margin: 0.25em 0;
+}
+.course.hidden a.r {
+	display: block;
 }
 
 #courses {
@@ -150,7 +166,7 @@ td {
 	font-family: inherit;
 	padding: 3px;
 	border: 1px solid #999;
-	display: block;				
+	display: block;
 	margin: 1em auto;
 	width: 90%;
 }
